@@ -1,0 +1,105 @@
+CREATE DATABASE IF NOT EXISTS actify_database;
+USE actify_database;
+
+CREATE TABLE Users (
+    user_id INT AUTO_INCREMENT PRIMARY KEY,
+    email VARCHAR(50) UNIQUE,
+    password_hash VARCHAR(100),
+    name VARCHAR(50),
+    role VARCHAR(20),
+    bio VARCHAR(250),
+    create_account_date DATE,
+    preferences VARCHAR(100)
+);
+
+CREATE TABLE User_profiles (
+    profile_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT,
+    goals VARCHAR(100),
+    dietary_restr VARCHAR(100),
+    avatar_url VARCHAR(100),
+    FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE
+);
+
+CREATE TABLE Postari (
+    post_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT,
+    content VARCHAR(300),
+    media_url VARCHAR(150),
+    timestamp DATE,
+    FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE
+);
+
+CREATE TABLE Comments (
+    comment_id INT AUTO_INCREMENT PRIMARY KEY,
+    post_id INT,
+    user_id INT,
+    content VARCHAR(150),
+    timestamp DATE,
+    FOREIGN KEY (post_id) REFERENCES Postari(post_id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE
+);
+
+CREATE TABLE Likes (
+    like_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT,
+    post_id INT,
+    FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (post_id) REFERENCES Postari(post_id) ON DELETE CASCADE
+);
+
+CREATE TABLE Mesaje (
+    mesaj_id INT AUTO_INCREMENT PRIMARY KEY,
+    id_sender INT,
+    id_receiver INT,
+    content VARCHAR(150),
+    FOREIGN KEY (id_sender) REFERENCES Users(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (id_receiver) REFERENCES Users(user_id) ON DELETE CASCADE
+);
+
+CREATE TABLE XP_Badges (
+    record_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT,
+    xp_points INT,
+    badge_name VARCHAR(50),
+    earned_at DATE,
+    FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE
+);
+
+CREATE TABLE Routes (
+    route_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT,
+    activity_type VARCHAR(20),
+    name VARCHAR(50),
+    distance_km DOUBLE,
+    estimated_time_min DOUBLE,
+    FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE
+);
+
+CREATE TABLE Events (
+    event_id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(50),
+    description VARCHAR(250),
+    location VARCHAR(50),
+    date_time DATE,
+    max_participants INT
+);
+
+CREATE TABLE EventParticipants (
+    participant_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT,
+    event_id INT,
+    status VARCHAR(20),
+    FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (event_id) REFERENCES Events(event_id) ON DELETE CASCADE
+);
+
+CREATE TABLE Notifications (
+    notification_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT,
+    type VARCHAR(50),
+    message VARCHAR(75),
+    is_read BOOLEAN,
+    timestamp DATE,
+    FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE
+);
