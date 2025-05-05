@@ -1,0 +1,540 @@
+    Base URL: 'http://127.0.0.1:10001/api'
+
+
+ -> GET `/ping`
+IN:
+{
+
+}
+OUT:
+{
+    "message": "string"
+}
+
+
+ • Auth
+ 
+ -> POST /auth/register
+IN:
+{
+  "username": "string",
+  "password": "string"
+}
+OUT:
+{
+  "message": "string"
+}
+
+ -> POST /auth/login
+IN:
+{
+  "username": "string",
+  "password": "string"
+}
+OUT:
+{
+  "message": "string"
+}
+
+
+ • Users
+
+ -> POST /users
+IN:
+{
+  "username": "string",
+  "password_hash": "string",
+  "name": "string | null",
+  "role": "string | null",
+  "bio": "string | null",
+  "preferences": "string | null"
+}
+OUT:
+{
+  "user_id": "integer",
+  "username": "string",
+  "name": "string | null",
+  "role": "string | null",
+  "bio": "string | null",
+  "preferences": "string | null"
+}
+
+ -> GET /users
+IN:
+{
+
+}
+OUT:
+[
+  {
+    "user_id": "integer",
+    "username": "string",
+    "name": "string | null",
+    "role": "string | null",
+    "bio": "string | null",
+    "preferences": "string | null"
+  }
+]
+
+
+ -> GET /users/{user_id}
+IN:
+{
+
+}
+OUT:
+{
+  "user_id": "integer",
+  "username": "string",
+  "name": "string | null",
+  "role": "string | null",
+  "bio": "string | null",
+  "preferences": "string | null"
+}
+
+
+ -> PUT /users/{user_id}
+IN:
+{
+
+}
+OUT:
+{
+  "username": "string",
+  "password_hash": "string",
+  "name": "string | null",
+  "role": "string | null",
+  "bio": "string | null",
+  "preferences": "string | null"
+}
+
+
+ -> DELETE /users/{user_id}
+IN:
+{
+    "user_id": "integer"
+}
+OUT:
+{
+
+}
+
+
+ • XP Badges
+
+
+ -> POST /xp-badges
+IN:
+{
+  "user_id": "integer",
+  "xp_points": "integer",
+  "badge_name": "string"
+}
+OUT:
+{
+  "record_id": "integer",
+  "user_id": "integer",
+  "xp_points": "integer",
+  "badge_name": "string",
+  "earned_at": "string (ISO datetime)"
+}
+
+ -> GET /xp-badges
+IN:
+{
+
+}
+OUT:
+[
+  {
+    "record_id": "integer",
+    "user_id": "integer",
+    "xp_points": "integer",
+    "badge_name": "string",
+    "earned_at": "string (ISO datetime)"
+  }
+]
+
+
+#TODO CONTINUE
+
+ -> GET /xp-badges/{record_id}
+IN:
+{
+
+}
+OUT:
+{
+
+}
+
+ -> PUT /xp-badges/{record_id}
+IN:
+{
+  "xp_points": "integer | null",
+  "badge_name": "string | null"
+}
+OUT:
+{
+    
+}
+Response 200 OK (updated badge)
+
+ -> DELETE /xp-badges/{record_id}
+Response 204 No Content
+
+Activity Routes
+ -> POST /activity-routes
+
+IN:
+{
+  "user_id": "integer",
+  "activity_type": "string",
+  "name": "string",
+  "distance_km": "number",
+  "estimated_time_min": "integer"
+}
+
+OUT:
+{
+  "route_id": "integer",
+  "user_id": "integer",
+  "activity_type": "string",
+  "name": "string",
+  "distance_km": "number",
+  "estimated_time_min": "integer"
+}
+
+
+ -> GET /activity-routes
+Response 200 OK
+
+
+
+
+[
+  { /* same as  -> POST response */ }
+]
+ -> GET /activity-routes/{route_id}
+Path parameter: route_id: integer
+
+Response 200 OK (single route)
+
+ -> PUT /activity-routes/{route_id}
+Request JSON (any subset):
+
+
+
+
+{
+  "activity_type": "string | null",
+  "name": "string | null",
+  "distance_km": "number | null",
+  "estimated_time_min": "integer | null"
+}
+Response 200 OK (updated route)
+
+ -> DELETE /activity-routes/{route_id}
+Response 204 No Content
+
+Events
+ -> POST /events
+IN{
+  "title": "string",
+  "description": "string",
+  "location": "string",
+  "date_time": "string (ISO datetime)",
+  "max_participants": "integer"
+}
+Response 201 OUT:{
+  "event_id": "integer",
+  "title": "string",
+  "description": "string",
+  "location": "string",
+  "date_time": "string (ISO datetime)",
+  "max_participants": "integer"
+}
+ -> GET /events
+Response 200 OK
+
+
+
+
+[
+  { /* same as  -> POST response */ }
+]
+ -> GET /events/{event_id}
+Path parameter: event_id: integer
+
+Response 200 OK (single event)
+
+ -> PUT /events/{event_id}
+Request JSON (any subset):
+
+
+
+
+{
+  "title": "string | null",
+  "description": "string | null",
+  "location": "string | null",
+  "date_time": "string (ISO datetime) | null",
+  "max_participants": "integer | null"
+}
+Response 200 OK (updated event)
+
+ -> DELETE /events/{event_id}
+Response 204 No Content
+
+Posts
+ -> POST /posts
+IN{
+  "user_id": "integer",
+  "content": "string",
+  "media_url": "string | null",
+  "timestamp": "string (ISO datetime) | null"
+}
+Response 201 OUT:{
+  "post_id": "integer",
+  "user_id": "integer",
+  "content": "string",
+  "media_url": "string | null",
+  "timestamp": "string (ISO datetime)"
+}
+ -> GET /posts
+Response 200 OK
+
+
+
+
+[
+  { /* same as  -> POST response */ }
+]
+ -> GET /posts/{post_id}
+Path parameter: post_id: integer
+
+Response 200 OK (single post)
+
+ -> PUT /posts/{post_id}
+IN{
+  "content": "string | null",
+  "media_url": "string | null"
+}
+Response 200 OK (updated post)
+
+ -> DELETE /posts/{post_id}
+Response 204 No Content
+
+Comments
+ -> POST /comments
+IN{
+  "post_id": "integer",
+  "user_id": "integer",
+  "content": "string",
+  "timestamp": "string (ISO datetime) | null"
+}
+Response 201 OUT:{
+  "comment_id": "integer",
+  "post_id": "integer",
+  "user_id": "integer",
+  "content": "string",
+  "timestamp": "string (ISO datetime)"
+}
+ -> GET /comments
+Response 200 OK
+
+
+
+
+[
+  { /* same as  -> POST response */ }
+]
+ -> GET /comments/{comment_id}
+Path parameter: comment_id: integer
+
+Response 200 OK (single comment)
+
+ -> PUT /comments/{comment_id}
+IN{
+  "content": "string | null"
+}
+Response 200 OK (updated comment)
+
+ -> DELETE /comments/{comment_id}
+Response 204 No Content
+
+Notifications
+ -> POST /notifications
+IN{
+  "user_id": "integer",
+  "content": "string",
+  "type": "string | null",
+  "created_at": "string (ISO datetime) | null",
+  "read": "boolean | null"
+}
+Response 201 OUT:{
+  "notification_id": "integer",
+  "user_id": "integer",
+  "content": "string",
+  "type": "string | null",
+  "created_at": "string (ISO datetime)",
+  "read": "boolean"
+}
+ -> GET /notifications
+Response 200 OK
+
+
+
+
+[
+  { /* same as  -> POST response */ }
+]
+ -> GET /notifications/{notification_id}
+Path parameter: notification_id: integer
+
+Response 200 OK (single notification)
+
+ -> PUT /notifications/{notification_id}
+Request JSON (any subset):
+
+
+
+
+{
+  "content": "string | null",
+  "type": "string | null",
+  "read": "boolean | null"
+}
+Response 200 OK (updated notification)
+
+ -> DELETE /notifications/{notification_id}
+Response 204 No Content
+
+Messages
+ -> POST /messages
+IN{
+  "sender_id": "integer",
+  "receiver_id": "integer",
+  "content": "string",
+  "timestamp": "string (ISO datetime) | null",
+  "read": "boolean | null"
+}
+Response 201 OUT:{
+  "message_id": "integer",
+  "sender_id": "integer",
+  "receiver_id": "integer",
+  "content": "string",
+  "timestamp": "string (ISO datetime)",
+  "read": "boolean"
+}
+ -> GET /messages
+Response 200 OK
+
+
+
+
+[
+  { /* same as  -> POST response */ }
+]
+ -> GET /messages/{message_id}
+Path parameter: message_id: integer
+
+Response 200 OK (single message)
+
+ -> PUT /messages/{message_id}
+IN{
+  "content": "string | null",
+  "read": "boolean | null"
+}
+Response 200 OK (updated message)
+
+ -> DELETE /messages/{message_id}
+Response 204 No Content
+
+Likes
+ -> POST /likes
+IN{
+  "user_id": "integer",
+  "post_id": "integer | null",
+  "comment_id": "integer | null",
+  "created_at": "string (ISO datetime) | null"
+}
+Response 201 OUT:{
+  "like_id": "integer",
+  "user_id": "integer",
+  "post_id": "integer | null",
+  "comment_id": "integer | null",
+  "created_at": "string (ISO datetime)"
+}
+ -> GET /likes
+Response 200 OK
+
+
+
+
+[
+  { /* same as  -> POST response */ }
+]
+ -> GET /likes/{like_id}
+Path parameter: like_id: integer
+
+Response 200 OK (single like)
+
+ -> PUT /likes/{like_id}
+IN{
+  "created_at": "string (ISO datetime) | null"
+}
+Response 200 OK (updated like)
+
+ -> DELETE /likes/{like_id}
+Response 204 No Content
+
+Recipes
+ -> POST /recipes
+IN{
+  "author_id": "integer",
+  "title": "string",
+  "description": "string",
+  "ingredients": "string",
+  "steps": "string",
+  "created_at": "string (ISO datetime) | null"
+}
+Response 201 OUT:{
+  "recipe_id": "integer",
+  "author_id": "integer",
+  "title": "string",
+  "description": "string",
+  "ingredients": "string",
+  "steps": "string",
+  "created_at": "string (ISO datetime)"
+}
+ -> GET /recipes
+Response 200 OK
+
+
+
+
+[
+  { /* same as  -> POST response */ }
+]
+ -> GET /recipes/{recipe_id}
+Path parameter: recipe_id: integer
+
+Response 200 OK (single recipe)
+
+ -> PUT /recipes/{recipe_id}
+Request JSON (any subset):
+
+
+
+
+{
+  "title": "string | null",
+  "description": "string | null",
+  "ingredients": "string | null",
+  "steps": "string | null"
+}
+Response 200 OK (updated recipe)
+
+ -> DELETE /recipes/{recipe_id}
+Response 204 No Content
