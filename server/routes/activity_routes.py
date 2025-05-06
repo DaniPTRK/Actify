@@ -1,5 +1,5 @@
 from typing import List
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Depends
 from sqlmodel import SQLModel
 
 from services.activity_routes import (
@@ -10,8 +10,14 @@ from services.activity_routes import (
     delete_route,
 )
 from models import ActivityRoute as RouteModel
+from models import User as UserModel
+from dependencies.token_verification import verify_jwt
 
-router = APIRouter(prefix="/activity-routes", tags=["Activity Routes"])
+router = APIRouter(
+    prefix="/activity-routes", 
+    tags=["Activity Routes"],
+    dependencies=[Depends(verify_jwt)],
+)
 
 
 class RouteCreate(SQLModel):
@@ -30,17 +36,24 @@ class RouteUpdate(SQLModel):
 
 
 @router.get("", response_model=List[RouteModel])
-async def read_routes():
+async def read_routes(
+    current_user: UserModel = Depends(verify_jwt)
+):
     return list_routes()
 
 
 @router.post("", response_model=RouteModel, status_code=status.HTTP_201_CREATED)
-async def create(r: RouteCreate):
+async def create(r: RouteCreate,
+    current_user: UserModel = Depends(verify_jwt)
+):
     return create_route(RouteModel(**r.dict()))
 
 
 @router.get("/{route_id}", response_model=RouteModel)
-async def read_route(route_id: int):
+async def read_route(
+    route_id: int,
+    current_user: UserModel = Depends(verify_jwt)
+):
     r = get_route(route_id)
     if not r:
         raise HTTPException(status_code=404, detail="Route not found")
@@ -48,7 +61,10 @@ async def read_route(route_id: int):
 
 
 @router.put("/{route_id}", response_model=RouteModel)
-async def replace_route(route_id: int, r: RouteUpdate):
+async def replace_route(
+    route_id: int, r: RouteUpdate,
+    current_user: UserModel = Depends(verify_jwt)
+):
     updated = update_route(route_id, r.dict(exclude_unset=True))
     if not updated:
         raise HTTPException(status_code=404, detail="Route not found")
@@ -56,6 +72,9 @@ async def replace_route(route_id: int, r: RouteUpdate):
 
 
 @router.delete("/{route_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def remove_route(route_id: int):
+async def remove_route(
+    route_id: int,
+    current_user: UserModel = Depends(verify_jwt)
+):
     if not delete_route(route_id):
         raise HTTPException(status_code=404, detail="Route not found")
