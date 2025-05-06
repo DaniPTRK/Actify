@@ -26,6 +26,7 @@ def parse_ingredients(x):
 
 df["ingredients"] = df["ingredients"].apply(parse_ingredients)
 
+# Transform allergens into a list
 def parse_allergens(x):
     if isinstance(x, str):
         try:
@@ -124,7 +125,7 @@ def recommend(user_text, allergens, diet, dish_category, time_min=10, time_max=5
     candidates["final"] = candidates["semantic_score"] + 0.3*candidates["extra"]
     best = candidates.sort_values("final", ascending=False).iloc[0]
 
-    # return as JSON for backend
+    # Send JSON payload to backend
     return {
         "image": best["image"],
         "name": best["title"],
@@ -136,6 +137,16 @@ def recommend(user_text, allergens, diet, dish_category, time_min=10, time_max=5
         "site": best["url"],
         "calories": best["calories"]
     }
+
+# Extract info from JSON payload
+def recommend_api(payload):
+    user_text = payload.get("user_text", "")
+    allergens = payload.get("allergens", [])
+    diet = payload.get("diet", "")
+    dish_category = payload.get("dish_category", "")
+    time_min = int(payload.get("time_min", 10))
+    time_max = int(payload.get("time_max", 500))
+    return recommend(user_text, allergens, diet, dish_category, time_min, time_max)
 
 # Test
 if __name__ == "__main__":
