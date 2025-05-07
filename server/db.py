@@ -1,6 +1,6 @@
 from contextlib import contextmanager
 import os
-from sqlmodel import SQLModel, create_engine, Session
+from sqlmodel import SQLModel, create_engine, Session, text
 
 
 MYSQL_USER = os.getenv("MYSQL_USER", "actify")
@@ -17,9 +17,9 @@ DATABASE_URL = (
 engine = create_engine(DATABASE_URL, echo=False, pool_pre_ping=True)
 
 
-def init_db() -> None:
-    """Create tables (no-op if they already exist). Call once at startup."""
-    # SQLModel.metadata.create_all(engine)
+# def init_db() -> None:
+#     """Create tables (no-op if they already exist). Call once at startup."""
+#     SQLModel.metadata.create_all(engine)
 
 
 
@@ -30,7 +30,10 @@ def get_session() -> Session:
         try:
             yield session
             session.commit()
-            # print(session.exec("SELECT 1").one())
         except Exception:
             session.rollback()
             raise
+        
+with get_session() as session:
+    result = session.execute(text("SELECT 1"))
+    print("Conexiune reusita:", result.one())
