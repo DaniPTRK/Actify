@@ -1,15 +1,9 @@
 package com.example.myapplication
 
 import android.animation.ObjectAnimator
-import android.animation.ValueAnimator
 import android.app.AlertDialog
 import android.app.Dialog
 import android.content.Context
-import android.os.Bundle
-import android.widget.*
-import androidx.appcompat.app.AppCompatActivity
-import android.widget.LinearLayout.LayoutParams
-import org.json.JSONObject
 import android.content.SharedPreferences
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -22,6 +16,7 @@ import android.graphics.Shader
 import android.graphics.Typeface
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.GradientDrawable
+import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.text.Editable
@@ -32,22 +27,33 @@ import android.util.AttributeSet
 import android.util.Log
 import android.util.TypedValue
 import android.view.Gravity
-import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.Window
 import android.view.WindowManager
+import android.widget.ArrayAdapter
+import android.widget.Button
+import android.widget.EditText
+import android.widget.FrameLayout
+import android.widget.ImageButton
+import android.widget.ImageView
+import android.widget.LinearLayout
+import android.widget.LinearLayout.LayoutParams
+import android.widget.ListView
+import android.widget.ProgressBar
+import android.widget.ScrollView
+import android.widget.Scroller
+import android.widget.Space
+import android.widget.TextView
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
+import org.json.JSONObject
+import java.net.HttpURLConnection
+import java.net.URL
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-import java.time.temporal.ChronoUnit
-import java.time.temporal.WeekFields
-import java.util.*
-import androidx.appcompat.app.AppCompatDelegate
-import com.google.android.material.bottomsheet.BottomSheetDialog
-import kotlin.math.min
 
 data class Message(
     val sender: String,
@@ -1811,11 +1817,93 @@ class MainActivity : AppCompatActivity() {
             textSize = 18f
             setOnClickListener {
                 val userMessage = messageInput.text.toString()
-                if (userMessage.isNotBlank()) {
-                    responseView.text = "AI: Îți recomand o rețetă pe baza mesajului: \"$userMessage\""
-                } else {
-                    Toast.makeText(this@MainActivity, "Scrie o întrebare.", Toast.LENGTH_SHORT).show()
+                if (userMessage.isBlank()) {
+                    Toast.makeText(this@MainActivity, "Write a question.", Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
                 }
+
+                val json = """
+        {
+            "user_text": "${userMessage.replace("\"", "\\\"")}",
+            "allergens": ["${selectedAllergens.joinToString("\", \"") { it.replace("\"", "\\\"") }}"],
+            "diet": "${selectedDietType}",
+            "dish_category": "${selectedMealTypes}"
+        }
+        """.trimIndent()
+                Log.d("BACK_BUTTON", "JSON: $json")
+
+                Thread {
+                    try {
+                        val url = URL("http://10.0.2.2:5000/recommend") // Emulator accesează localhost astfel
+                        val conn = url.openConnection() as HttpURLConnection
+                        conn.requestMethod = "POST"
+                        conn.setRequestProperty("Content-Type", "application/json")
+                        conn.doOutput = true
+
+                        // Trimite JSON-ul
+                        conn.outputStream.use { os ->
+                            val input = json.toByteArray(Charsets.UTF_8)
+                            os.write(input, 0, input.size)
+                        }
+
+                        // Primește răspunsul
+                        val response = conn.inputStream.bufferedReader().use { it.readText() }
+
+                        runOnUiThread {
+                            try {
+                                val jsonObject = JSONObject(response)
+
+                                val formatted = buildString {
+                                    append("🍽️ Recipe: ${jsonObject.getString("name")}\n\n")
+
+                                    val rawIngredients = jsonObject.getString("ingredients")
+// Scoate parantezele pătrate și despărțitorii
+                                    val cleaned = rawIngredients
+                                        .replace("[", "")
+                                        .replace("]", "")
+                                        .replace("\"", "")
+                                        .replace("'", "")
+                                        .split(",")
+                                        .map { it.trim() }
+
+                                    append("📋 Ingredients:\n")
+                                    for (ingredient in cleaned) {
+                                        append("  • $ingredient\n")
+                                    }
+
+
+                                    append("\n📝 Directions:\n${jsonObject.getString("directions")}\n")
+
+                                    append("\n🕒 Total Time: ${jsonObject.getInt("total_time")} minutes\n")
+                                    append("⚠️ Allergens: ")
+                                    val allergens = jsonObject.getJSONArray("allergens")
+                                    if (allergens.length() == 0) {
+                                        append("None\n")
+                                    } else {
+                                        for (i in 0 until allergens.length()) {
+                                            append("${allergens.getString(i)}${if (i < allergens.length() - 1) ", " else "\n"}")
+                                        }
+                                    }
+
+                                    append("🔥 Calories: ${jsonObject.getDouble("calories")}\n")
+                                    append("\n🌐 URL: ${jsonObject.getString("site")}")
+                                }
+
+                                responseView.text = formatted
+
+                            } catch (e: Exception) {
+                                //responseView.text = "❌ Failed to parse JSON response: ${e.message}"
+                                responseView.text = "❌ I couldn't find a good recipe for you. I am sorry."
+                            }
+                        }
+
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        runOnUiThread {
+                            responseView.text = "Request failed: ${e.message}"
+                        }
+                    }
+                }.start()
             }
         }
 
