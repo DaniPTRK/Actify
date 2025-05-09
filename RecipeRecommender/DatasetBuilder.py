@@ -1,7 +1,7 @@
 import pandas as pd, numpy as np, re
 import collections
 
-# !!! CALL THIS IF .CSV & .PKL IS MISSING
+# !!! CALL THIS IF .CSV IS MISSING FOR .PKL
 
 # Get recipe DB from HuggingFace
 df = pd.read_csv("hf://datasets/Shengtao/recipe/recipe.csv")
