@@ -1,21 +1,9 @@
 package com.example.myapplication
 
 import android.animation.ObjectAnimator
-<<<<<<< HEAD
 import android.app.AlertDialog
 import android.app.Dialog
 import android.content.Context
-=======
-import android.animation.ValueAnimator
-import android.app.AlertDialog
-import android.app.Dialog
-import android.content.Context
-import android.os.Bundle
-import android.widget.*
-import androidx.appcompat.app.AppCompatActivity
-import android.widget.LinearLayout.LayoutParams
-import org.json.JSONObject
->>>>>>> b9d70f982ffbe6a4e4b528dec6d0d37f3e6a78d7
 import android.content.SharedPreferences
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -28,10 +16,7 @@ import android.graphics.Shader
 import android.graphics.Typeface
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.GradientDrawable
-<<<<<<< HEAD
 import android.os.Bundle
-=======
->>>>>>> b9d70f982ffbe6a4e4b528dec6d0d37f3e6a78d7
 import android.os.Handler
 import android.os.Looper
 import android.text.Editable
@@ -42,15 +27,10 @@ import android.util.AttributeSet
 import android.util.Log
 import android.util.TypedValue
 import android.view.Gravity
-<<<<<<< HEAD
-=======
-import android.view.MotionEvent
->>>>>>> b9d70f982ffbe6a4e4b528dec6d0d37f3e6a78d7
 import android.view.View
 import android.view.ViewGroup
 import android.view.Window
 import android.view.WindowManager
-<<<<<<< HEAD
 import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.EditText
@@ -68,25 +48,13 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.cardview.widget.CardView
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-=======
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-import java.time.temporal.ChronoUnit
-import java.time.temporal.WeekFields
-import java.util.*
-import androidx.appcompat.app.AppCompatDelegate
-import com.google.android.material.bottomsheet.BottomSheetDialog
-import kotlin.math.min
->>>>>>> b9d70f982ffbe6a4e4b528dec6d0d37f3e6a78d7
 
 data class Message(
     val sender: String,
@@ -385,6 +353,13 @@ class MainActivity : AppCompatActivity() {
 
     private fun showInitialMenu() {
         layout.removeAllViews()
+        val logoImageView = ImageView(this).apply {
+            setImageResource(R.drawable.logo)  // Înlocuiește cu numele corect al fișierului
+            layoutParams = LayoutParams(800, 800).apply {  // Lățime 400px și înălțime 200px
+                setMargins(0, 0, 0, 50)  // Marja pentru logo între titlu
+            }
+        }
+
         val titleTextView = TextView(this).apply {
             text = "Welcome to Actify"
             textSize = 55f
@@ -470,7 +445,9 @@ class MainActivity : AppCompatActivity() {
             layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT)
         }
         //layout.setBackgroundColor(Color.BLACK)
+
         layout.addView(titleTextView)
+        layout.addView(logoImageView)
         //loginButton.setOnClickListener { showLoginUI() }
         registerButton.setOnClickListener { showRegisterUI() }
         exitButton.setOnClickListener {
@@ -585,6 +562,148 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
+    private fun showSavedUI(email: String) {
+        layout.removeAllViews()
+
+        val parentLayout = FrameLayout(this).apply {
+            layoutParams = FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.MATCH_PARENT
+            )
+            setBackgroundColor(Color.parseColor("#F5F5F5")) // Fundal general
+        }
+
+        val scrollView = ScrollView(this).apply {
+            layoutParams = FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.MATCH_PARENT
+            ).apply {
+                bottomMargin = 150 // Spațiu pentru butonul fixat
+            }
+        }
+
+        val container = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+            setPadding(32, 200, 32, 32)
+        }
+
+        fun createSavedSection(title: String, items: List<String>): CardView {
+            val card = CardView(this).apply {
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                ).apply {
+                    setMargins(0, 0, 0, 48) // Spațiu între secțiuni
+                }
+                radius = 24f
+                cardElevation = 10f
+                setContentPadding(40, 40, 40, 40)
+                setCardBackgroundColor(Color.WHITE)
+                minimumHeight = 600 // ✅ Face secțiunea vizibil mai mare
+            }
+
+            val sectionLayout = LinearLayout(this).apply {
+                orientation = LinearLayout.VERTICAL
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                )
+            }
+
+            val titleView = TextView(this).apply {
+                text = title
+                textSize = 22f
+                setTypeface(null, Typeface.BOLD)
+                setTextColor(Color.parseColor("#333333"))
+            }
+
+            sectionLayout.addView(titleView)
+
+            if (items.isEmpty()) {
+                val emptyText = TextView(this).apply {
+                    text = "No saved items"
+                    setPadding(0, 24, 0, 0)
+                    textSize = 16f
+                    setTextColor(Color.DKGRAY)
+                }
+                sectionLayout.addView(emptyText)
+            } else {
+                for (item in items) {
+                    val itemView = TextView(this).apply {
+                        text = "• $item"
+                        setPadding(0, 16, 0, 16)
+                        textSize = 17f
+                        setTextColor(Color.DKGRAY)
+                    }
+                    sectionLayout.addView(itemView)
+                }
+            }
+
+            card.addView(sectionLayout)
+            return card
+        }
+        // Dummy data
+        val savedMessages = listOf("Hi there!", "See you tomorrow.")
+        val savedAIResponses = listOf("Here's the summary of your day.", "I recommend learning Kotlin.")
+        val savedChallenges = listOf("30-Day Coding Challenge", "AI Art Contest")
+
+        container.addView(createSavedSection("⭐ Saved messages from people", savedMessages))
+        container.addView(createSavedSection("🤖 Saved responses from AI", savedAIResponses))
+        container.addView(createSavedSection("🎯 Saved Challenges / Events", savedChallenges))
+
+        scrollView.addView(container)
+        parentLayout.addView(scrollView)
+
+        val headerLayout = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            layoutParams = FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.WRAP_CONTENT,
+                FrameLayout.LayoutParams.WRAP_CONTENT,
+                Gravity.TOP or Gravity.START // sau CENTER_HORIZONTAL dacă vrei centrare
+            ).apply {
+                setMargins(32, 32, 32, 0)
+            }
+            gravity = Gravity.CENTER_VERTICAL
+        }
+
+// ✅ Butonul "Back" cu dimensiuni și parametrii corecți
+        val backButton = ImageButton(this).apply {
+            setImageResource(R.drawable.image3)
+            background = null
+            scaleType = ImageView.ScaleType.FIT_CENTER
+            layoutParams = LinearLayout.LayoutParams(200, 200) // Folosește LinearLayout.LayoutParams
+
+            setOnClickListener {
+                showHomePage(email)
+            }
+        }
+
+// ✅ Titlul "⭐ Favorites"
+        val titleText = TextView(this).apply {
+            text = "⭐ Favorites"
+            textSize = 30f
+            setTypeface(null, Typeface.BOLD)
+            setTextColor(Color.parseColor("#333333"))
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply {
+                setMargins(24, 0, 0, 0) // Spațiu între imagine și text
+            }
+        }
+
+// ✅ Adăugare în header și adăugare header în layout
+        headerLayout.addView(backButton)
+        headerLayout.addView(titleText)
+        parentLayout.addView(headerLayout)
+        //parentLayout.addView(backButton)
+        layout.addView(parentLayout)
+    }
+
 
     private fun showRegisterUI() {
         layout.removeAllViews()
@@ -689,6 +808,101 @@ class MainActivity : AppCompatActivity() {
 
         editor.apply()
     }
+    fun showChallengesUI(email: String) {
+        // Creăm un layout principal pentru ecran
+        val mainLayout = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)
+            setPadding(16, 16, 16, 16)
+        }
+
+        // Creăm un ScrollView pentru a permite derularea listei de challenge-uri
+        val scrollView = ScrollView(this).apply {
+            layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)
+        }
+
+        // Creăm un LinearLayout care va conține lista de challenge-uri
+        val challengeLayout = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)
+            setPadding(16, 16, 16, 16)
+        }
+
+        // Lista de challenge-uri
+        val challenges = listOf(
+            "Challenge 1: Complete your first task",
+            "Challenge 2: Reach 100 points",
+            "Challenge 3: Invite a friend",
+            "Challenge 4: Achieve 5 achievements"
+        )
+
+        // Creăm un TextView pentru titlu
+        val titleTextView = TextView(this).apply {
+            text = "🏆 Your Challenges"
+            textSize = 32f
+            setTextColor(Color.BLACK)
+            setPadding(300, 0, 20, 100)  // Padding pentru a adăuga spațiu între titlu și lista de challenge-uri
+            gravity = Gravity.START
+        }
+
+        // Adăugăm fiecare challenge într-un CardView pentru a crea un chenar
+        challenges.forEach { challenge ->
+            val challengeCardView = CardView(this).apply {
+                layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT).apply {
+                    setMargins(0, 10, 0, 10)
+                }
+                radius = 20f  // Colțuri rotunjite
+                cardElevation = 8f  // Umbră subtilă
+                setCardBackgroundColor(Color.parseColor("#F0F0F0"))  // Culoare de fundal deschisă
+                val challengeTextView = TextView(this@MainActivity).apply {
+                    text = challenge
+                    textSize = 25f
+                    setTextColor(Color.BLACK)
+                    setPadding(20, 20, 20, 20)  // Padding consistent
+                    gravity = Gravity.START
+                }
+
+                addView(challengeTextView)
+            }
+
+            challengeLayout.addView(challengeCardView)
+        }
+
+        // Adăugăm titlul și layout-ul cu challenge-uri la ScrollView
+        scrollView.addView(challengeLayout)
+
+        // Adăugăm scrollView la layout-ul principal
+        mainLayout.addView(titleTextView)
+        mainLayout.addView(scrollView)
+
+        // Creăm un ImageButton pentru butonul rotund
+        val roundButton = ImageButton(this).apply {
+            setImageResource(R.drawable.image3)  // Imaginea dorită
+            layoutParams = LayoutParams(200, 200).apply {
+                setMargins(16, 16, 0, 0)  // Plasăm butonul în colțul din stânga sus
+            }
+            scaleType = ImageView.ScaleType.CENTER_CROP
+            background = null  // Îndepărtează fundalul implicit
+            setOnClickListener {
+                showHomePage(email)
+            }
+        }
+
+        // Creăm un container pentru butonul rotund și lista derulantă
+        val containerLayout = FrameLayout(this).apply {
+            layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)
+        }
+
+        // Adăugăm butonul rotund și lista de challenge-uri la container
+        containerLayout.addView(mainLayout)
+        containerLayout.addView(roundButton)
+
+        // Ștergem orice vizualizare existentă și adăugăm layout-ul final
+        layout.removeAllViews()
+        layout.addView(containerLayout)
+    }
+
+
 
     private fun showEditProfileUI(email: String) {
         layout.removeAllViews()
@@ -861,10 +1075,10 @@ class MainActivity : AppCompatActivity() {
                             showHistoryUI()
                         },
                         "⭐  Saved" to {
-                            //showSavedUI(email)
+                            showSavedUI(email)
                         },
                         "🏆  Challenges" to {
-                            //showChallengesUI(email)
+                            showChallengesUI(email)
                         }
                     )
                     for ((text, action) in menuItems) {
@@ -1850,7 +2064,6 @@ class MainActivity : AppCompatActivity() {
             textSize = 18f
             setOnClickListener {
                 val userMessage = messageInput.text.toString()
-<<<<<<< HEAD
                 if (userMessage.isBlank()) {
                     Toast.makeText(this@MainActivity, "Write a question.", Toast.LENGTH_SHORT).show()
                     return@setOnClickListener
@@ -1938,13 +2151,6 @@ class MainActivity : AppCompatActivity() {
                         }
                     }
                 }.start()
-=======
-                if (userMessage.isNotBlank()) {
-                    responseView.text = "AI: Îți recomand o rețetă pe baza mesajului: \"$userMessage\""
-                } else {
-                    Toast.makeText(this@MainActivity, "Scrie o întrebare.", Toast.LENGTH_SHORT).show()
-                }
->>>>>>> b9d70f982ffbe6a4e4b528dec6d0d37f3e6a78d7
             }
         }
 
