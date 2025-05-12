@@ -326,4 +326,4 @@ bio="Trail runner & foodie",
 
 
 #get_row_by_id('Users', 1, 'user_id')
-get_all_rows('Users')
+#get_all_rows('Users')

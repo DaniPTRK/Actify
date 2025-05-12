@@ -3,6 +3,8 @@ from pydantic import BaseModel
 
 from services.auth import *
 
+from dependencies.token_verification import create_access_token
+
 router = APIRouter(tags=["Auth"])
 
 @router.get("/ping")
@@ -25,5 +27,11 @@ async def register(creds: Credentials) -> dict[str, str]:
 
 @router.post("/auth/login")
 async def login(creds: Credentials) -> dict[str, str]:
-    authenticate_user(creds.username, creds.password)
-    return {"message": "logged in"}
+    user = authenticate_user(creds.username, creds.password)
+    
+    token = create_access_token(
+        subject=user.user_id,
+        expires_delta=timedelta(hours=12),
+        extra_claims={"role": user.role}
+    )
+    return {"message": "logged in", "token": token}

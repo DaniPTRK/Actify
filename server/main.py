@@ -4,6 +4,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from routes import api_router
 from db import engine
 from CRUD import create_user, create_post
+from dependencies.token_verification import create_access_token
+
+
+from dotenv import load_dotenv
+load_dotenv()
 
 
 FRONTEND_PORT = 10001
@@ -54,3 +59,14 @@ from models import *
 user = User(email = 'asdhgfajsd@gmail.com', password_hash = 'asjdffgasjhdjasd')
 
 #print(user.dict())
+
+
+from datetime import timedelta
+
+token = create_access_token(
+        subject=user.user_id,
+        expires_delta=timedelta(hours=12),
+        extra_claims={"role": user.role}
+)
+
+print(token)

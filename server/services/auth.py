@@ -4,6 +4,8 @@ from sqlmodel import select
 
 from db import get_session
 from models import User
+from datetime import timedelta
+
 
 
 def register_user(username: str, password: str) -> User:
@@ -33,9 +35,15 @@ def authenticate_user(username: str, password: str) -> User:
         user = session.exec(
             select(User).where(User.username == username)
         ).first()
+        
+        
+        
         if not user or user.password_hash != password:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid credentials",
             )
+            
+
+
         return user
