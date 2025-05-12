@@ -4,6 +4,7 @@ import android.animation.ObjectAnimator
 import android.app.AlertDialog
 import android.app.Dialog
 import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -14,8 +15,11 @@ import android.graphics.Paint
 import android.graphics.RectF
 import android.graphics.Shader
 import android.graphics.Typeface
+import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.ColorDrawable
+import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
+import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -40,6 +44,7 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.LinearLayout.LayoutParams
 import android.widget.ListView
+import android.widget.PopupMenu
 import android.widget.ProgressBar
 import android.widget.ScrollView
 import android.widget.Scroller
@@ -49,7 +54,10 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.cardview.widget.CardView
+import androidx.core.content.ContextCompat
 import org.json.JSONObject
+import java.io.File
+import java.io.FileOutputStream
 import java.net.HttpURLConnection
 import java.net.URL
 import java.text.SimpleDateFormat
@@ -508,6 +516,150 @@ class MainActivity : AppCompatActivity() {
             editor.apply()
         }
     }
+    private fun resizeDrawable(drawableResId: Int, width: Int, height: Int): Drawable {
+        val original = ContextCompat.getDrawable(this, drawableResId)!!
+        val bitmap = (original as BitmapDrawable).bitmap
+        val scaledBitmap = Bitmap.createScaledBitmap(bitmap, width, height, true)
+        return BitmapDrawable(resources, scaledBitmap)
+    }
+    private fun RoutePlanner() {
+        layout.removeAllViews()
+        layout.setPadding(32, 32, 32, 32)
+
+        val titleText = TextView(this).apply {
+            text = "🌍 Route Planner"
+            textSize = 24f
+            gravity = Gravity.CENTER
+            setTextColor(Color.BLACK)
+            setTypeface(null, Typeface.BOLD)
+            layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT).apply {
+                bottomMargin = 32
+            }
+        }
+
+        val startPointEditText = EditText(this).apply {
+            hint = "Where you start"
+            layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT).apply {
+                bottomMargin = 24
+            }
+            setPadding(24, 24, 24, 24)
+            typeface = Typeface.DEFAULT_BOLD
+            textSize = 22f
+            setTextColor(Color.WHITE)
+            setHintTextColor(Color.LTGRAY)
+            background = resizeDrawable(R.drawable.edit_text_background, 800, 50)
+        }
+
+        val destinationEditText = EditText(this).apply {
+            hint = "Your destination"
+            layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT).apply {
+                bottomMargin = 24
+            }
+            setPadding(24, 24, 24, 24)
+            typeface = Typeface.DEFAULT_BOLD
+            textSize = 22f
+            setTextColor(Color.WHITE)
+            setHintTextColor(Color.LTGRAY)
+            background = resizeDrawable(R.drawable.edit_text_background, 800, 50)
+        }
+
+        fun showPopupMenu(view: View, resultTextView: TextView) {
+            val popupMenu = PopupMenu(this, view)
+            val menu = popupMenu.menu
+
+            menu.add("🚶‍♂️ Walking")
+            menu.add("🚴‍♀️ With bike")
+
+            popupMenu.setOnMenuItemClickListener { item ->
+                when (item.title) {
+                    "🚶‍♂️ Walking" -> {
+                        resultTextView.text = "🚶‍♂️ Walking"
+                        Toast.makeText(this, "Căutare rută pentru mers pe jos...", Toast.LENGTH_SHORT).show()
+                    }
+                    "🚴‍♀️ With bike" -> {
+                        resultTextView.text = "🚴‍♀️ With bike"
+                        Toast.makeText(this, "Căutare rută pentru bicicletă...", Toast.LENGTH_SHORT).show()
+                    }
+                }
+                true
+            }
+
+            popupMenu.show()
+        }
+
+        val modeLayout = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT).apply {
+                bottomMargin = 24
+            }
+        }
+
+        val menuButton = Button(this).apply {
+            text = "Choose Mode"
+            layoutParams = LayoutParams(500, LayoutParams.WRAP_CONTENT).apply {
+                marginEnd = 16
+            }
+            setBackgroundColor(Color.parseColor("#2196F3"))
+            setTextColor(Color.WHITE)
+            textSize = 18f
+            setPadding(16, 16, 16, 16)
+        }
+
+        val resultTextView = TextView(this).apply {
+            text = "Select Mode"
+            textSize = 18f
+            setTextColor(Color.BLACK)
+            layoutParams = LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT)
+        }
+
+        modeLayout.addView(menuButton)
+        modeLayout.addView(resultTextView)
+
+        val mapPlaceholder = FrameLayout(this).apply {
+            layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, 0).apply {
+                height = 0
+                weight = 1f
+            }
+            setBackgroundColor(Color.LTGRAY)
+            id = View.generateViewId()
+            setPadding(8, 8, 8, 8)
+        }
+
+        // Butonul circular "Back"
+        val backButton = Button(this).apply {
+            text = "←"  // Poti folosi simbolul săgeată sau alt text pentru back
+            layoutParams = LayoutParams(100, 100).apply {
+                topMargin = 32
+                leftMargin = 32
+            }
+            setBackgroundColor(Color.parseColor("#FF4081"))
+            setTextColor(Color.WHITE)
+            textSize = 24f
+            gravity = Gravity.CENTER
+            isAllCaps = false
+            // Aplicăm un fundal rotund pentru buton
+            background = resources.getDrawable(R.drawable.image3)
+        }
+
+        // Organizăm componentele în layout-ul principal
+        layout.addView(backButton)
+        layout.addView(titleText)
+        layout.addView(startPointEditText)
+        layout.addView(destinationEditText)
+        layout.addView(modeLayout)
+        layout.addView(mapPlaceholder)
+
+        // Setăm listener-ul pentru butonul "Choose Mode"
+        menuButton.setOnClickListener {
+            showPopupMenu(menuButton, resultTextView)
+        }
+        backButton.setOnClickListener {
+            showHomePage(MainActivity.currentUserEmail.toString())
+        }
+    }
+
+
+
     private fun showLoginUI() {
         layout.removeAllViews()
         val usersJson = sharedPreferences.getString(USERS_KEY, "{}")
@@ -554,6 +706,7 @@ class MainActivity : AppCompatActivity() {
 
             if (users.has(email) && users.getString(email) == password) {
                 MainActivity.currentUserEmail = email
+                Toast.makeText(this, "Login Successful", Toast.LENGTH_SHORT).show()
                 Toast.makeText(this, "Login Successful", Toast.LENGTH_SHORT).show()
                 showHomePage(email)
 
@@ -901,8 +1054,36 @@ class MainActivity : AppCompatActivity() {
         layout.removeAllViews()
         layout.addView(containerLayout)
     }
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == 1001 && resultCode == RESULT_OK && data != null) {
+            val uri = data.data ?: return
+            currentUserEmail?.let {
+                saveProfileImage(it, uri)
+                showEditProfileUI(it)
+            }
+        }
+    }
 
+    private fun saveProfileImage(email: String, uri: Uri) {
+        val inputStream = contentResolver.openInputStream(uri) ?: return
+        val file = File(filesDir, "profile_$email.jpg")
+        val outputStream = FileOutputStream(file)
+        inputStream.copyTo(outputStream)
+        inputStream.close()
+        outputStream.close()
+    }
 
+    private fun getProfileImageUri(email: String): Uri? {
+        val file = File(filesDir, "profile_$email.jpg")
+        return if (file.exists()) Uri.fromFile(file) else null
+    }
+
+    private fun renameProfileImage(oldEmail: String, newEmail: String) {
+        val oldFile = File(filesDir, "profile_$oldEmail.jpg")
+        val newFile = File(filesDir, "profile_$newEmail.jpg")
+        if (oldFile.exists()) oldFile.renameTo(newFile)
+    }
 
     private fun showEditProfileUI(email: String) {
         layout.removeAllViews()
@@ -917,6 +1098,29 @@ class MainActivity : AppCompatActivity() {
             text = "Edit Profile"
             textSize = 22f
             setPadding(16, 16, 16, 16)
+        }
+
+        val profileImageView = ImageView(this).apply {
+            layoutParams = LinearLayout.LayoutParams(700, 700)
+            scaleType = ImageView.ScaleType.CENTER_CROP
+            setPadding(16, 16, 16, 16)
+            val uri = getProfileImageUri(email)
+            if (uri != null) {
+                setImageURI(uri)
+            } else {
+                setImageResource(R.drawable.poza_profil2) // imaginea default
+            }
+        }
+
+        val uploadButton = Button(this).apply {
+            text = "Choose Profile Picture"
+            setOnClickListener {
+                val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
+                    type = "image/*"
+                }
+                startActivityForResult(Intent.createChooser(intent, "Select Picture"), 1001)
+                currentUserEmail = email // save context for onActivityResult
+            }
         }
 
         val nameInput = EditText(this).apply {
@@ -955,10 +1159,13 @@ class MainActivity : AppCompatActivity() {
                 Toast.makeText(this, "This email is already in use", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
+
             val passwordToStore = if (newPassword.isNotEmpty()) newPassword else users.getString(email)
             if (newEmail != email) {
                 users.remove(email)
+                renameProfileImage(email, newEmail)
             }
+
             users.put(newEmail, passwordToStore)
             sharedPreferences.edit().putString(USERS_KEY, users.toString()).apply()
             profilePrefs.edit().remove("name_$email").apply()
@@ -974,12 +1181,15 @@ class MainActivity : AppCompatActivity() {
         }
 
         layout.addView(title)
+        layout.addView(profileImageView)
+        layout.addView(uploadButton)
         layout.addView(nameInput)
         layout.addView(emailInput)
         layout.addView(passwordInput)
         layout.addView(saveButton)
         layout.addView(backButton)
     }
+
     private fun showHomePage(email: String) {
         layout.removeAllViews()
         val rootLayout = FrameLayout(this).apply {
@@ -1061,6 +1271,9 @@ class MainActivity : AppCompatActivity() {
                     val menuItems = listOf(
                         "🍲  Recipe Recommender" to {
                             startRecipeChatAI()
+                        },
+                        "🌍 Route Planner" to {
+                            RoutePlanner()
                         },
                         "📝  Add Notes" to {
                             showAddNotesUI(email) // Apelăm funcția pentru a adăuga note
