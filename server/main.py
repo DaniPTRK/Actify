@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from routes import api_router
-from db import init_db
+from db import engine
 
 
 FRONTEND_PORT = 10001
@@ -26,10 +26,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-init_db()
+print(engine)
 
 
-app.include_router(router, prefix="/api")
+app.include_router(api_router, prefix="/api")
 
 @app.get("/")
 async def root() -> dict[str, str]:

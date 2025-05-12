@@ -17,11 +17,6 @@ DATABASE_URL = (
 engine = create_engine(DATABASE_URL, echo=False, pool_pre_ping=True)
 
 
-# def init_db() -> None:
-#     """Create tables (no-op if they already exist). Call once at startup."""
-#     SQLModel.metadata.create_all(engine)
-
-
 
 @contextmanager
 def get_session() -> Session:
@@ -35,5 +30,7 @@ def get_session() -> Session:
             raise
         
 with get_session() as session:
-    result = session.execute(text("SELECT 1"))
-    print("Conexiune reusita:", result.one())
+    stmt = text("DESC Users")
+    rows = session.execute(stmt).all()
+    for row in rows:
+        print(row) 
