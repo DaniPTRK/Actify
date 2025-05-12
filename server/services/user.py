@@ -11,7 +11,7 @@ def create_user(payload: Users) -> Users:
     with get_session() as session:
         
         existing = session.exec(
-            select(Users).where(Users.email == input.email)
+            select(Users).where(Users.email == payload.email)
         ).first()
 
         if existing:
