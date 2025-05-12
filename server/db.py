@@ -29,8 +29,3 @@ def get_session() -> Session:
             session.rollback()
             raise
         
-with get_session() as session:
-    stmt = text("DESC Users")
-    rows = session.execute(stmt).all()
-    for row in rows:
-        print(row) 
