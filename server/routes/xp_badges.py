@@ -10,7 +10,7 @@ from services.xp_badges import (
     delete_badge,
 )
 from models import XPBadge as XPBadgeModel
-from models import User as UserModel
+from models import Users as UserModel
 from dependencies.token_verification import verify_jwt
 
 router = APIRouter(

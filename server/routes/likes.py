@@ -11,7 +11,7 @@ from services.likes import (
     delete_like,
 )
 from models import Like as LikeModel
-from models import User as UserModel
+from models import Users as UserModel
 from dependencies.token_verification import verify_jwt
 
 router = APIRouter(
@@ -42,8 +42,10 @@ async def create(
     current_user: UserModel = Depends(verify_jwt)
 ):
     data = lk.dict(exclude_unset=True)
+
     if data.get("created_at") is None:
         data["created_at"] = datetime.utcnow()
+
     return create_like(LikeModel(**data))
 
 @router.get("/{like_id}", response_model=LikeModel)

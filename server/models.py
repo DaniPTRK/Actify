@@ -5,6 +5,7 @@ from sqlmodel import SQLModel, Field
 
 
 class XPBadge(SQLModel, table=True):
+    __tablename__ = "XP_Badges"
     record_id: Optional[int] = Field(default=None, primary_key=True)
     user_id: int = Field(index=True)
     xp_points: int
@@ -13,6 +14,7 @@ class XPBadge(SQLModel, table=True):
 
 
 class ActivityRoute(SQLModel, table=True):
+    __tablename__ = "Routes"
     route_id: Optional[int] = Field(default=None, primary_key=True)
     user_id: int = Field(index=True)
     activity_type: str
@@ -22,6 +24,7 @@ class ActivityRoute(SQLModel, table=True):
 
 
 class Event(SQLModel, table=True):
+    __tablename__ = "Events"
     event_id: Optional[int] = Field(default=None, primary_key=True)
     title: str
     description: str
@@ -31,6 +34,7 @@ class Event(SQLModel, table=True):
 
 
 class Post(SQLModel, table=True):
+    __tablename__ = "Postari"
     post_id: Optional[int] = Field(default=None, primary_key=True)
     user_id: int = Field(index=True)
     content: str
@@ -39,13 +43,15 @@ class Post(SQLModel, table=True):
 
 
 class Comment(SQLModel, table=True):
+    __tablename__ = "Comments"
     comment_id: Optional[int] = Field(default=None, primary_key=True)
     post_id: int = Field(index=True)
     user_id: int = Field(index=True)
     content: str
     timestamp: datetime = Field(default_factory=datetime.utcnow)
     
-class User(SQLModel, table=True):
+class Users(SQLModel, table=True):
+    __tablename__ = "Users"
     user_id: Optional[int] = Field(default=None, primary_key=True)
     email: str = Field(index=True, unique=True)
     password_hash: str
@@ -55,6 +61,7 @@ class User(SQLModel, table=True):
     preferences: Optional[str] = None
     
 class Notification(SQLModel, table=True):
+    __tablename__ = "Notifications"
     notification_id: Optional[int] = Field(default=None, primary_key=True)
     user_id: int = Field(index=True)
     content: str
@@ -64,6 +71,7 @@ class Notification(SQLModel, table=True):
 
 
 class Message(SQLModel, table=True):
+    __tablename__ = "Mesaje"
     mesaj_id: Optional[int] = Field(default=None, primary_key=True)
     sender_id: int = Field(index=True)
     receiver_id: int = Field(index=True)
@@ -73,6 +81,7 @@ class Message(SQLModel, table=True):
 
 
 class Like(SQLModel, table=True):
+    __tablename__ = "Likes"
     like_id: Optional[int] = Field(default=None, primary_key=True)
     user_id: int = Field(index=True)
     post_id: Optional[int] = Field(default=None, index=True)
@@ -81,6 +90,7 @@ class Like(SQLModel, table=True):
 
 
 class Recipe(SQLModel, table=True):
+    __tablename__ = "Retete"
     recipe_id: Optional[int] = Field(default=None, primary_key=True)
     author_id: int = Field(index=True)
     title: str

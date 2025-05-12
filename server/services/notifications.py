@@ -2,7 +2,7 @@ from typing import List, Optional
 from sqlmodel import select
 from db import get_session
 from models import Notification
-from models import User as UserModel
+from models import Users as UserModel
 
 
 def create_notification(payload: Notification) -> Notification:

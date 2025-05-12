@@ -12,7 +12,7 @@ from services.posts import (
     delete_post,
 )
 from models import Post as PostModel
-from models import User as UserModel
+from models import Users as UserModel
 from dependencies.token_verification import verify_jwt
 
 router = APIRouter(
@@ -49,7 +49,8 @@ async def create(
     data = p.dict(exclude_unset=True)
     if data.get("timestamp") is None:
         data["timestamp"] = datetime.utcnow()
-    return create_post(PostModel(**data))
+
+    return create_post(PostModel(**data), current_user)
 
 
 @router.get("/{post_id}", response_model=PostModel)
@@ -80,5 +81,5 @@ async def remove_post(
     post_id: int,
     current_user: UserModel = Depends(verify_jwt)
 ):
-    if not delete_post(post_id):
+    if not delete_post(post_id, current_user):
         raise HTTPException(status_code=404, detail="Post not found")

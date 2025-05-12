@@ -12,7 +12,7 @@ from services.comments import (
     delete_comment,
 )
 from models import Comment as CommentModel
-from models import User as UserModel
+from models import Users as UserModel
 from dependencies.token_verification import verify_jwt
 
 router = APIRouter(

@@ -12,7 +12,7 @@ from services.events import (
     delete_event,
 )
 from models import Event as EventModel
-from models import User as UserModel
+from models import Users as UserModel
 from dependencies.token_verification import verify_jwt
 
 router = APIRouter(
