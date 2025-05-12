@@ -2,6 +2,10 @@ from typing import List
 from datetime import datetime
 from fastapi import APIRouter, HTTPException, status, Depends
 from sqlmodel import SQLModel
+import sys
+import os
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
 from services.recipes import (
     create_recipe,
@@ -10,9 +14,10 @@ from services.recipes import (
     update_recipe,
     delete_recipe,
 )
-from models import Recipe as RecipeModel
+from models import Recipe as RecipeModel, RecommendResponse, RecommendRequest
 from models import Users as UserModel
 from dependencies.token_verification import verify_jwt
+from RecipeRecommender.RecipeRecommender import recommend_api
 
 router = APIRouter(
     prefix="/recipes",
@@ -85,3 +90,14 @@ async def remove_recipe(
 ):
     if not delete_recipe(recipe_id):
         raise HTTPException(status_code=404, detail="Recipe not found")
+
+@router.post("/recommend",
+             response_model=RecommendResponse,
+             status_code=status.HTTP_200_OK,
+             include_in_schema=True)
+async def recommend_endpoint(payload: RecommendRequest):
+    result = recommend_api(payload.dict())
+    if isinstance(result, dict) and result.get("error"):
+        raise HTTPException(status_code=404, detail=result["error"])
+    
+    return result
