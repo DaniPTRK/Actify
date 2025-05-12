@@ -47,7 +47,7 @@ class Comment(SQLModel, table=True):
     
 class User(SQLModel, table=True):
     user_id: Optional[int] = Field(default=None, primary_key=True)
-    username: str = Field(index=True, unique=True)
+    email: str = Field(index=True, unique=True)
     password_hash: str
     name: Optional[str] = None
     role: Optional[str] = None
@@ -64,7 +64,7 @@ class Notification(SQLModel, table=True):
 
 
 class Message(SQLModel, table=True):
-    message_id: Optional[int] = Field(default=None, primary_key=True)
+    mesaj_id: Optional[int] = Field(default=None, primary_key=True)
     sender_id: int = Field(index=True)
     receiver_id: int = Field(index=True)
     content: str
