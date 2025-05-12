@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 
 from sqlmodel import SQLModel, Field
 
@@ -98,3 +98,26 @@ class Recipe(SQLModel, table=True):
     ingredients: str
     steps: str
     created_at: datetime = Field(default_factory=datetime.utcnow)
+
+# Recipe Recommender Req
+class RecommendRequest(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    user_text: str
+    allergens: Optional[str] = []
+    diet: str
+    dish_category: str
+    time_min: int = 10
+    time_max: int = 500
+
+# Recipe Recommender Answer
+class RecommendResponse(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    image: str
+    name: str
+    diet_type: str
+    allergens: Optional[str]
+    total_time: int
+    ingredients: Optional[str]
+    directionts: str
+    site: str
+    calories: float | None = None
