@@ -3,6 +3,7 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 import jwt
 import os
 from services.user import get_user
+from datetime import datetime, timedelta
 from models import User
 
 # JWT configuration
@@ -63,3 +64,38 @@ def decode_and_get_user(token: str):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
                             detail="User disabled")
     return user
+
+
+def create_access_token(
+    *,
+    subject: int | str,
+    expires_delta: timedelta | None = None,
+    extra_claims: dict | None = None,  # optional: add role, email, etc.
+) -> str:
+    """
+    Return a signed JWT (HS256) encoding:
+      * sub  - user_id (as str)
+      * iat  - issued-at (UTC)
+      * nbf  - not-before (UTC, same as iat)
+      * exp  - expiry (UTC, default 1 h)
+      * any extra key/value pairs you pass via *extra_claims*
+    """
+    if not SECRET_KEY:
+        raise RuntimeError("ENV var 'token_secret_key' is unset")
+
+    now = datetime.utcnow()
+    if expires_delta is None:
+        expires_delta = timedelta(hours=1)      # default lifetime
+    exp = now + expires_delta
+
+    payload = {
+        "sub": str(subject),
+        "iat": now,
+        "nbf": now,
+        "exp": exp,
+    }
+    if extra_claims:
+        payload.update(extra_claims)
+
+    token: str = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
+    return token
