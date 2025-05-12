@@ -10,7 +10,6 @@ from services.user import (
     delete_user,
 )
 from models import User as UserModel
-from models import User as UserModel
 from dependencies.token_verification import verify_jwt
 
 router = APIRouter(

@@ -3,14 +3,11 @@ from sqlmodel import select
 
 from db import get_session
 from models import User
+from CRUD import create_user as CRUD_create_user
 
 
 def create_user(payload: User) -> User:
-    with get_session() as session:
-        session.add(payload)
-        session.flush()
-        session.refresh(payload)
-        return payload
+    return CRUD_create_user(**payload.dict())
 
 
 def list_users() -> List[User]:
