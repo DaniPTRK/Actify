@@ -9,7 +9,7 @@ from services.user import (
     update_user,
     delete_user,
 )
-from models import User as UserModel
+from models import Users as UserModel
 from dependencies.token_verification import verify_jwt
 
 router = APIRouter(
@@ -20,7 +20,7 @@ router = APIRouter(
 
 
 class UserCreate(SQLModel):
-    username: str
+    email: str
     password_hash: str
     name: str | None = None
     role: str | None = None
@@ -30,7 +30,7 @@ class UserCreate(SQLModel):
 
 class UserRead(SQLModel):
     user_id: int
-    username: str
+    email: str
     name: str | None
     role: str | None
     bio: str | None

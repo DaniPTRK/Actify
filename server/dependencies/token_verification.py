@@ -4,7 +4,7 @@ import jwt
 import os
 from services.user import get_user
 from datetime import datetime, timedelta
-from models import User
+from models import Users
 
 # JWT configuration
 SECRET_KEY = os.getenv('token_secret_key')
@@ -15,7 +15,7 @@ security = HTTPBearer()
 
 async def verify_jwt(
     credentials: HTTPAuthorizationCredentials = Depends(security),
-    ) -> User:
+    ) -> Users:
     """
     1) Pulls Bearer token out of Authorization header.
     2) Verifies signature + standard claims (exp, nbf, etc.).
@@ -38,13 +38,14 @@ async def verify_jwt(
             detail="Token missing subject",
         )
 
-    user = get_user(int(user_id))   # your MySQL lookup
+    user = get_user(int(user_id))
     if not user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
-    if not user.is_active:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="User disabled")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Users not found")
 
     return user
+
+
+
 
 def decode_and_get_user(token: str):
     try:
@@ -59,11 +60,12 @@ def decode_and_get_user(token: str):
     user = get_user(int(user_id))
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                            detail="User not found")
-    if not user.is_active:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
-                            detail="User disabled")
+                            detail="Users not found")
+
     return user
+
+
+
 
 
 def create_access_token(
@@ -99,3 +101,5 @@ def create_access_token(
 
     token: str = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
     return token
+
+

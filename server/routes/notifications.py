@@ -10,10 +10,9 @@ from services.notifications import (
     delete_notification,
 )
 from models import Notification as NotificationModel
-from models import User as UserModel
+from models import Users as UserModel
 from dependencies.token_verification import verify_jwt, decode_and_get_user
 from web_sockets_manager import manager
-import jwt
 from fastapi import WebSocket, WebSocketDisconnect, status
 from dependencies.token_verification import SECRET_KEY, ALGORITHM
 from logic.notifications_logic import *

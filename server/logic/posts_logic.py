@@ -1,18 +1,18 @@
 
 from models import Users as UserModel
-from models import Notification as NotificationModel
+from models import Post as PostModel
 
 
-def can_delete_notification(
+def can_delete_post(
     user: UserModel, 
-    notification: NotificationModel
+    post: PostModel
 ) -> bool:
     
     if user.role == 'ADMIN':
         return True
 
-    if user.user_id == notification.user_id:
+    if user.user_id == post.user_id:
         return True
     
     return False
-    
+

@@ -10,7 +10,7 @@ from services.activity_routes import (
     delete_route,
 )
 from models import ActivityRoute as RouteModel
-from models import User as UserModel
+from models import Users as UserModel
 from dependencies.token_verification import verify_jwt
 
 router = APIRouter(

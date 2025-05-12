@@ -11,7 +11,7 @@ from services.messages import (
     delete_message,
 )
 from models import Message as MessageModel
-from models import User as UserModel
+from models import Users as UserModel
 from dependencies.token_verification import verify_jwt
 
 router = APIRouter(

@@ -1,28 +1,46 @@
 from typing import List, Optional
 from sqlmodel import select
+from fastapi import HTTPException, status
 
 from db import get_session
-from models import User
-from CRUD import create_user as CRUD_create_user
+from models import Users
 
 
-def create_user(payload: User) -> User:
-    return CRUD_create_user(**payload.dict())
+def create_user(payload: Users) -> Users:
 
-
-def list_users() -> List[User]:
     with get_session() as session:
-        return session.exec(select(User)).all()
+        
+        existing = session.exec(
+            select(Users).where(Users.email == input.email)
+        ).first()
+
+        if existing:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="User already exists",
+            )
+
+        new_user = Users(**payload.dict())
+        session.add(new_user)
+        session.flush()
+        session.refresh(new_user)
+
+        return new_user
 
 
-def get_user(user_id: int) -> Optional[User]:
+def list_users() -> List[Users]:
     with get_session() as session:
-        return session.get(User, user_id)
+        return session.exec(select(Users)).all()
 
 
-def update_user(user_id: int, updates: dict) -> Optional[User]:
+def get_user(user_id: int) -> Optional[Users]:
     with get_session() as session:
-        user = session.get(User, user_id)
+        return session.get(Users, user_id)
+
+
+def update_user(user_id: int, updates: dict) -> Optional[Users]:
+    with get_session() as session:
+        user = session.get(Users, user_id)
         if not user:
             return None
         for key, val in updates.items():
@@ -33,7 +51,7 @@ def update_user(user_id: int, updates: dict) -> Optional[User]:
 
 def delete_user(user_id: int) -> bool:
     with get_session() as session:
-        user = session.get(User, user_id)
+        user = session.get(Users, user_id)
         if not user:
             return False
         session.delete(user)
