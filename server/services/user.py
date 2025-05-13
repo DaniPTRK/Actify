@@ -33,26 +33,35 @@ def list_users() -> List[Users]:
         return session.exec(select(Users)).all()
 
 
-def get_user(user_id: int) -> Optional[Users]:
+def get_user_by_id(user_id: int) -> Optional[Users]:
     with get_session() as session:
         return session.get(Users, user_id)
 
 
-def update_user(user_id: int, updates: dict) -> Optional[Users]:
+def get_user_by_email(email: str) -> Optional[Users]:
     with get_session() as session:
-        user = session.get(Users, user_id)
-        if not user:
-            return None
+        stmt = select(Users).where(Users.email == email)
+        return session.exec(stmt).one_or_none()
+
+
+def get_users_by_name(prefix: str) -> List[Users]:
+    with get_session() as session:
+        stmt = select(Users).where(Users.name.ilike(f"{prefix}%"))
+        return session.exec(stmt).all()
+
+
+def update_user(user: Users, updates: dict) -> Optional[Users]:
+    with get_session() as session:
+
         for key, val in updates.items():
             setattr(user, key, val)
+
         session.add(user)
         return user
 
 
-def delete_user(user_id: int) -> bool:
+def delete_user(user: Users) -> bool:
     with get_session() as session:
-        user = session.get(Users, user_id)
-        if not user:
-            return False
+
         session.delete(user)
         return True
