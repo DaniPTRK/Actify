@@ -10,13 +10,14 @@ from sentence_transformers import SentenceTransformer
 # Configuration
 BASE_DIR = os.path.dirname(__file__)
 CSV_PATH = os.path.join(BASE_DIR, "enriched_recipes.csv")     # path to csv file
-INDEX_PKL  = os.path.join(BASE_DIR, "faiss_pkl.csv")          # pkl index
+INDEX_PKL  = os.path.join(BASE_DIR, "faiss_index.pkl")          # pkl index
 EMB_MODEL  = "intfloat/e5-small-v2"      # embedding model
 EMB_DIM    = 384                         # embedding dimension
 TOP_K      = 25                          # re-rank candidates
 USE_CUDA = torch.cuda.is_available() and faiss.get_num_gpus() > 0 # check for GPU
 
 # Load data
+# df = pd.read_csv("hf://datasets/DaniPTRK/ActifyRecipeDataset/enriched_recipes.csv")
 df = pd.read_csv(CSV_PATH)
 
 # Transform ingredients string into a list
