@@ -59,6 +59,15 @@ class Users(SQLModel, table=True):
     role: Optional[str] = None
     bio: Optional[str] = None
     preferences: Optional[str] = None
+    create_account_date: datetime = Field(default_factory=datetime.utcnow)
+
+class UserProfiles(SQLModel, table=True):
+    __tablename__ = "UserProfiles"
+    profile_id: Optional[int] = Field(default=None, primary_key=True)
+    user_id: int = Field(index=True)
+    goals: Optional[str]
+    dietary_restr: Optional[str]
+    avatar_url: Optional[str]
     
 class Notification(SQLModel, table=True):
     __tablename__ = "Notifications"
@@ -98,26 +107,3 @@ class Recipe(SQLModel, table=True):
     ingredients: str
     steps: str
     created_at: datetime = Field(default_factory=datetime.utcnow)
-
-# Recipe Recommender Req
-class RecommendRequest(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    user_text: str
-    allergens: Optional[str] = []
-    diet: str
-    dish_category: str
-    time_min: int = 10
-    time_max: int = 500
-
-# Recipe Recommender Answer
-class RecommendResponse(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    image: str
-    name: str
-    diet_type: str
-    allergens: Optional[str]
-    total_time: int
-    ingredients: Optional[str]
-    directionts: str
-    site: str
-    calories: float | None = None

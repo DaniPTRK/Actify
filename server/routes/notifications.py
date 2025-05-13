@@ -12,7 +12,6 @@ from services.notifications import (
 from models import Notification as NotificationModel
 from models import Users as UserModel
 from dependencies.token_verification import verify_jwt, decode_and_get_user
-from web_sockets_manager import manager
 from fastapi import WebSocket, WebSocketDisconnect, status
 from dependencies.token_verification import SECRET_KEY, ALGORITHM
 from logic.notifications_logic import *
@@ -38,30 +37,6 @@ class NotificationUpdate(SQLModel):
     
 
 
-@router.websocket("/subscribe")
-async def websocket_notifications(websocket: WebSocket):
-    auth = websocket.headers.get("authorization", "")
-    scheme, _, token = auth.partition(" ")
-
-    if scheme.lower() != "bearer" or not token:
-        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
-        return
-
-    try:
-        current_user = decode_and_get_user(token)
-    except HTTPException:
-        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
-        return
-
-    await manager.connect(current_user.user_id, websocket)
-    try:
-        while True:
-            await websocket.receive_text()   # client pings
-    except WebSocketDisconnect:
-        manager.disconnect(current_user.id, websocket)
-
-
-
 @router.get("", response_model=List[NotificationModel])
 async def read_notifications(
     current_user: UserModel = Depends(verify_jwt)
@@ -69,7 +44,6 @@ async def read_notifications(
     return list_notifications(current_user)
 
 
-# TODO maybe delete this route
 @router.post("", response_model=NotificationModel, status_code=status.HTTP_201_CREATED)
 async def create_notification_route(
     notif: NotificationCreate,
@@ -81,8 +55,6 @@ async def create_notification_route(
         data["created_at"] = datetime.utcnow()
         
     new_notif = create_notification(NotificationModel(**data))
-        
-    await manager.send_personal_message(new_notif.dict(), current_user.id)
 
     return new_notif
 

@@ -20,7 +20,7 @@ def create_user(payload: Users) -> Users:
                 detail="User already exists",
             )
 
-        new_user = Users(**payload.dict())
+        new_user = payload
         session.add(new_user)
         session.flush()
         session.refresh(new_user)

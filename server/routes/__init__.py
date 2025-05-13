@@ -12,6 +12,7 @@ from .notifications import router as notifications_router
 from .messages import router as messages_router
 from .likes import router as likes_router
 from .recipes import router as recipes_router
+from .user_profiles import router as user_profiles_router
 
 api_router = APIRouter()
 
@@ -26,3 +27,5 @@ api_router.include_router(notifications_router)
 api_router.include_router(messages_router)
 api_router.include_router(likes_router)
 api_router.include_router(recipes_router)
+api_router.include_router(user_profiles_router)
+
