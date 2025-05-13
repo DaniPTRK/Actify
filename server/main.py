@@ -17,8 +17,7 @@ app = FastAPI(
 )
 
 origins = [
-    "http://localhost",
-    "http://localhost:{FRONTEND_PORT}}",
+    "*"
 ]
 
 app.add_middleware(
@@ -31,7 +30,7 @@ app.add_middleware(
 
 print(engine)
 
-
+print("trece pe aici12345")
 app.include_router(api_router, prefix="/api")
 
 @app.get("/")
