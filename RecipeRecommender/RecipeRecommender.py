@@ -6,6 +6,15 @@ import numpy as np
 import pandas as pd
 import faiss, torch
 from sentence_transformers import SentenceTransformer
+import sys, importlib, platform
+
+
+if platform.system() == "Darwin":
+    importlib.import_module("faiss.swigfaiss")
+    sys.modules.setdefault(
+        "faiss.swigfaiss_avx2",
+        sys.modules["faiss.swigfaiss"]
+    )
 
 # Configuration
 BASE_DIR = os.path.dirname(__file__)
