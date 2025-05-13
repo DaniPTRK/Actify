@@ -1,7 +1,8 @@
 from typing import List
 from datetime import datetime
 from fastapi import APIRouter, HTTPException, status, Depends
-from sqlmodel import SQLModel
+from sqlmodel import SQLModel, Field
+from typing import Optional, List
 import sys
 import os
 
@@ -14,7 +15,7 @@ from services.recipes import (
     update_recipe,
     delete_recipe,
 )
-from models import Recipe as RecipeModel, RecommendResponse, RecommendRequest
+from models import Recipe as RecipeModel
 from models import Users as UserModel
 from dependencies.token_verification import verify_jwt
 from RecipeRecommender.RecipeRecommender import recommend_api
@@ -90,6 +91,31 @@ async def remove_recipe(
 ):
     if not delete_recipe(recipe_id):
         raise HTTPException(status_code=404, detail="Recipe not found")
+
+
+
+class RecommendRequest(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    user_text: str
+    allergens: Optional[str] = []
+    diet: str
+    dish_category: str
+    time_min: int = 10
+    time_max: int = 500
+
+class RecommendResponse(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    image: str
+    name: str
+    diet_type: str
+    allergens: Optional[str]
+    total_time: int
+    ingredients: Optional[str]
+    directionts: str
+    site: str
+    calories: float | None = None
+
+
 
 @router.post("/recommend",
              response_model=RecommendResponse,

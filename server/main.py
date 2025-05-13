@@ -5,9 +5,7 @@ from dotenv import load_dotenv
 load_dotenv(".env")
 
 from routes import api_router
-from db import engine
 
-FRONTEND_PORT = 10001
 BACKEND_PORT = 8000
 
 app = FastAPI(
@@ -16,19 +14,13 @@ app = FastAPI(
     description="Minimal FastAPI backend for the mobile client",
 )
 
-origins = [
-    "*"
-]
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-print(engine)
 
 print("trece pe aici12345")
 app.include_router(api_router, prefix="/api")
