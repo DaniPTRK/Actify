@@ -42,22 +42,21 @@ class NotificationUpdate(SQLModel):
 async def websocket_notifications(websocket: WebSocket):
     auth = websocket.headers.get("authorization", "")
     scheme, _, token = auth.partition(" ")
+
     if scheme.lower() != "bearer" or not token:
         await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
         return
 
     try:
         current_user = decode_and_get_user(token)
-    except HTTPException as exc:
-        # HTTPException in WS context: translate to close
+    except HTTPException:
         await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
         return
 
-    await manager.connect(current_user.id, websocket)
+    await manager.connect(current_user.user_id, websocket)
     try:
         while True:
-            # client pings to keep alive
-            await websocket.receive_text()
+            await websocket.receive_text()   # client pings
     except WebSocketDisconnect:
         manager.disconnect(current_user.id, websocket)
 
