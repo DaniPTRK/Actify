@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, status, Depends, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 import jwt
 import os
-from services.user import get_user
+from services.user import get_user_by_id
 from datetime import datetime, timedelta
 from models import Users
 
@@ -38,7 +38,7 @@ async def verify_jwt(
             detail="Token missing subject",
         )
 
-    user = get_user(int(user_id))
+    user = get_user_by_id(int(user_id))
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Users not found")
 

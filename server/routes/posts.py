@@ -14,6 +14,8 @@ from services.posts import (
 from models import Post as PostModel
 from models import Users as UserModel
 from dependencies.token_verification import verify_jwt
+from logic.posts_logic import *
+
 
 router = APIRouter(
     prefix="/posts",
@@ -70,7 +72,23 @@ async def replace_post(
     p: PostUpdate,
     current_user: UserModel = Depends(verify_jwt)
 ):
-    updated = update_post(post_id, p.dict(exclude_unset=True))
+    post = get_post(post_id)
+    
+    if not post:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="There is no post with the provided post_id",
+        )
+    
+    # check if the user can delete the post
+    if not can_modify_post(current_user, post):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="You dont have the permission to delete this post",
+        )
+
+    updated = update_post(post, p.dict(exclude_unset=True))
+
     if not updated:
         raise HTTPException(status_code=404, detail="Post not found")
     return updated
@@ -81,5 +99,20 @@ async def remove_post(
     post_id: int,
     current_user: UserModel = Depends(verify_jwt)
 ):
-    if not delete_post(post_id, current_user):
+    post = get_post(post_id)
+    
+    if not post:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="There is no post with the provided post_id",
+        )
+        
+    # check if the user can delete the post
+    if not can_modify_post(current_user, post):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="You dont have the permission to delete this post",
+        )
+    
+    if not delete_post(post, current_user):
         raise HTTPException(status_code=404, detail="Post not found")

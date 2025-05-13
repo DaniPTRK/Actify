@@ -4,7 +4,6 @@ from sqlmodel import select
 from db import get_session
 from models import Post, Users
 from fastapi import HTTPException, status
-from logic.posts_logic import can_delete_post
 
 
 '''only the logged user can create a post'''
@@ -34,35 +33,18 @@ def get_post(post_id: int) -> Optional[Post]:
         return session.get(Post, post_id)
 
 
-def update_post(post_id: int, updates: dict) -> Optional[Post]:
+def update_post(post: Post, updates: dict) -> Optional[Post]:
     with get_session() as session:
-        post = session.get(Post, post_id)
-        if not post:
-            return None
+
         for key, val in updates.items():
             setattr(post, key, val)
+
         session.add(post)
         return post
 
 
-def delete_post(post_id: int, loggedUser: Users) -> bool:
+def delete_post(post: Post, loggedUser: Users) -> bool:
     with get_session() as session:
-
-        post = session.get(Post, post_id)
-
-        if not post:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="There is no post with the provided post_id",
-            )
-
-        
-        # check if the user can delete the post
-        if not can_delete_post(loggedUser, post):
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="You dont have the permission to delete this post",
-            )
 
         session.delete(post)
         return True
