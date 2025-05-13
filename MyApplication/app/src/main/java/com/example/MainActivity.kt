@@ -1,21 +1,10 @@
 package com.example.myapplication
 
 import android.animation.ObjectAnimator
-<<<<<<< HEAD
 import android.app.AlertDialog
 import android.app.Dialog
 import android.content.Context
-=======
-import android.animation.ValueAnimator
-import android.app.AlertDialog
-import android.app.Dialog
-import android.content.Context
-import android.os.Bundle
-import android.widget.*
-import androidx.appcompat.app.AppCompatActivity
-import android.widget.LinearLayout.LayoutParams
-import org.json.JSONObject
->>>>>>> b9d70f982ffbe6a4e4b528dec6d0d37f3e6a78d7
+import android.content.Intent
 import android.content.SharedPreferences
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -26,12 +15,12 @@ import android.graphics.Paint
 import android.graphics.RectF
 import android.graphics.Shader
 import android.graphics.Typeface
+import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.ColorDrawable
+import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
-<<<<<<< HEAD
+import android.net.Uri
 import android.os.Bundle
-=======
->>>>>>> b9d70f982ffbe6a4e4b528dec6d0d37f3e6a78d7
 import android.os.Handler
 import android.os.Looper
 import android.text.Editable
@@ -42,15 +31,10 @@ import android.util.AttributeSet
 import android.util.Log
 import android.util.TypedValue
 import android.view.Gravity
-<<<<<<< HEAD
-=======
-import android.view.MotionEvent
->>>>>>> b9d70f982ffbe6a4e4b528dec6d0d37f3e6a78d7
 import android.view.View
 import android.view.ViewGroup
 import android.view.Window
 import android.view.WindowManager
-<<<<<<< HEAD
 import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.EditText
@@ -60,6 +44,7 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.LinearLayout.LayoutParams
 import android.widget.ListView
+import android.widget.PopupMenu
 import android.widget.ProgressBar
 import android.widget.ScrollView
 import android.widget.Scroller
@@ -68,25 +53,17 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.cardview.widget.CardView
+import androidx.core.content.ContextCompat
+import org.json.JSONArray
 import org.json.JSONObject
+import java.io.File
+import java.io.FileOutputStream
 import java.net.HttpURLConnection
 import java.net.URL
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-=======
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-import java.time.temporal.ChronoUnit
-import java.time.temporal.WeekFields
-import java.util.*
-import androidx.appcompat.app.AppCompatDelegate
-import com.google.android.material.bottomsheet.BottomSheetDialog
-import kotlin.math.min
->>>>>>> b9d70f982ffbe6a4e4b528dec6d0d37f3e6a78d7
 
 data class Message(
     val sender: String,
@@ -97,6 +74,13 @@ data class Message(
 class MainActivity : AppCompatActivity() {
     companion object {
         var currentUserEmail: String? = null
+        var authToken: String? = null
+        var currentUserId: Int? = null  // user_id global
+        var nume: String? = null
+        var rol: String? = null
+        var bibliografie: String? = null
+        var preferinte: String? = null
+        var parola: String? = null
     }
     private val selectedAllergens = mutableListOf<String>()
     private val selectedMealTypes = mutableListOf<String>()
@@ -385,6 +369,13 @@ class MainActivity : AppCompatActivity() {
 
     private fun showInitialMenu() {
         layout.removeAllViews()
+        val logoImageView = ImageView(this).apply {
+            setImageResource(R.drawable.logo)  // Înlocuiește cu numele corect al fișierului
+            layoutParams = LayoutParams(800, 800).apply {  // Lățime 400px și înălțime 200px
+                setMargins(0, 0, 0, 50)  // Marja pentru logo între titlu
+            }
+        }
+
         val titleTextView = TextView(this).apply {
             text = "Welcome to Actify"
             textSize = 55f
@@ -470,7 +461,9 @@ class MainActivity : AppCompatActivity() {
             layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT)
         }
         //layout.setBackgroundColor(Color.BLACK)
+
         layout.addView(titleTextView)
+        layout.addView(logoImageView)
         //loginButton.setOnClickListener { showLoginUI() }
         registerButton.setOnClickListener { showRegisterUI() }
         exitButton.setOnClickListener {
@@ -499,24 +492,134 @@ class MainActivity : AppCompatActivity() {
         registerButton.setOnClickListener {
             val email = emailEditText.text.toString()
             val password = passwordEditText.text.toString()
+            Thread {
+                try {
+                    val json = JSONObject()
+                    json.put("email", email)
+                    json.put("password_hash", password)
+                    val url = URL("http://10.0.2.2:8000/api/auth/register") // corect pentru emulator
+                    val conn = url.openConnection() as HttpURLConnection
+                    conn.requestMethod = "POST"
+                    conn.setRequestProperty("Content-Type", "application/json")
+                    conn.doOutput = true
+                    val input = json.toString().toByteArray(Charsets.UTF_8)
+                    conn.outputStream.use { os ->
+                        os.write(input, 0, input.size)
+                    }
+                    val response = conn.inputStream.bufferedReader().use { it.readText() }
+                    val jsonResponse = JSONObject(response)
+                    val message = jsonResponse.getString("message")
+                    Log.d("RegisterResult", "Mesaj: $message")
+                    //Log.d("LoginResult", "Token: $token")
+                    runOnUiThread {
+                        Toast.makeText(this, "Răspuns: $response", Toast.LENGTH_LONG).show()
+                    }
+                    if (message == "registered") {
+                        Log.d("Register Succesfull", "Login: $message")
+                        runOnUiThread {
+                            MainActivity.currentUserEmail = email
+                            Toast.makeText(this, "Register Successful", Toast.LENGTH_SHORT).show()
+                            showHomePage(email)
+                        }
+                        //am dat register, trebuie login si sa cer toate datele despre user
+                        try {
+                            val json = JSONObject()
+                            json.put("email", email)
+                            json.put("password_hash", password)
+                            val url = URL("http://10.0.2.2:8000/api/auth/login") // corect pentru emulator
+                            val conn = url.openConnection() as HttpURLConnection
+                            conn.requestMethod = "POST"
+                            conn.setRequestProperty("Content-Type", "application/json")
+                            conn.doOutput = true
+                            val input = json.toString().toByteArray(Charsets.UTF_8)
+                            conn.outputStream.use { os ->
+                                os.write(input, 0, input.size)
+                            }
+                            val response = conn.inputStream.bufferedReader().use { it.readText() }
+                            val jsonResponse = JSONObject(response)
+                            val message = jsonResponse.getString("message")
+                            val token = jsonResponse.getString("token")
+                            Log.d("LoginResult", "Mesaj: $message")
+                            //Log.d("LoginResult", "Token: $token")
+                            runOnUiThread {
+                                Toast.makeText(this, "Răspuns: $response", Toast.LENGTH_LONG).show()
+                            }
+                            if (message == "logged in") {
+                                Log.d("Login Succesfull", "Login: $message")
+                                val url = URL("http://10.0.2.2:8000/api/users/email/$email") // corect pentru emulator
+                                val conn = url.openConnection() as HttpURLConnection
+                                conn.requestMethod = "GET"
+                                conn.setRequestProperty("Content-Type", "application/json")
+                                conn.setRequestProperty("Authorization", "Bearer $token")
+                                val response = try {
+                                    conn.inputStream.bufferedReader().use { it.readText() }
+                                } catch (e: Exception) {
+                                    e.printStackTrace()
+                                    null
+                                }
 
-            if (email.isNotEmpty() && password.isNotEmpty()) {
-                val usersJson = sharedPreferences.getString(USERS_KEY, "{}")
-                val users = JSONObject(usersJson)
+                                // Dacă răspunsul este valid
+                                if (response != null) {
+                                    val jsonResponse = JSONObject(response)
+                                    Log.d("JSON Response", jsonResponse.toString())
+                                    val userId = jsonResponse.getInt("user_id")  // Extrage user_id ca integer
+                                    val email = jsonResponse.getString("email")  // Extrage email ca string
+                                    val name = jsonResponse.optString("name", "Unknown")  // Extrage name, folosind optString pentru a evita null
+                                    val role = jsonResponse.optString("role", "Unknown")  // Extrage role, folosind optString pentru a evita null
+                                    val bio = jsonResponse.optString("bio", "No bio")  // Extrage bio, folosind optString pentru a evita null
+                                    val preferences = jsonResponse.optString("preferences", "No preferences")  // Extrage preferences, folosind optString pentru a evita null
+                                    Log.d("JSON Response", "user_id: $userId")
+                                    runOnUiThread {
+                                        MainActivity.authToken = token
+                                        MainActivity.currentUserEmail = email
+                                        MainActivity.currentUserId = userId
+                                        MainActivity.nume = name
+                                        MainActivity.rol = role
+                                        MainActivity.bibliografie = bio
+                                        MainActivity.preferinte = preferences
+                                        MainActivity.parola = password
+                                        Toast.makeText(this, "Login Successful", Toast.LENGTH_SHORT).show()
+                                        showHomePage(email)
+                                    }
+                                } else {
+                                    runOnUiThread {
+                                        Toast.makeText(this, "Failed to retrieve user data", Toast.LENGTH_SHORT).show()
+                                    }
+                                }
 
-                if (users.has(email)) {
-                    Toast.makeText(this, "User already exists", Toast.LENGTH_SHORT).show()
-                } else {
-                    users.put(email, password)
-                    MainActivity.currentUserEmail = email
-                    sharedPreferences.edit().putString(USERS_KEY, users.toString()).apply()
-                    Toast.makeText(this, "Registered successfully", Toast.LENGTH_SHORT).show()
-                    showHomePage(email)
+                                runOnUiThread {
+                                    MainActivity.authToken = token;
+                                    MainActivity.currentUserEmail = email
+                                    Toast.makeText(this, "Login Successful", Toast.LENGTH_SHORT).show()
+                                    showHomePage(email)
+                                }
+                            }
+                            else
+                            {
+                                runOnUiThread {
+                                    Toast.makeText(this, "Invalid credentials", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                            runOnUiThread {
+                                Toast.makeText(this, "Eroare: ${e.message}", Toast.LENGTH_LONG).show()
+                            }
+                        }
+                    }
+                    else
+                    {
+                        runOnUiThread {
+                            Toast.makeText(this, "Invalid credentials", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    runOnUiThread {
+                        Toast.makeText(this, "Eroare: ${e.message}", Toast.LENGTH_LONG).show()
+                    }
                 }
-            } else {
-                Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show()
-            }
-
+            }.start()
         }
     }
     private fun markConversationAsRead(currentUser: String, otherUser: String) {
@@ -531,6 +634,150 @@ class MainActivity : AppCompatActivity() {
             editor.apply()
         }
     }
+    private fun resizeDrawable(drawableResId: Int, width: Int, height: Int): Drawable {
+        val original = ContextCompat.getDrawable(this, drawableResId)!!
+        val bitmap = (original as BitmapDrawable).bitmap
+        val scaledBitmap = Bitmap.createScaledBitmap(bitmap, width, height, true)
+        return BitmapDrawable(resources, scaledBitmap)
+    }
+    private fun RoutePlanner() {
+        layout.removeAllViews()
+        layout.setPadding(32, 32, 32, 32)
+
+        val titleText = TextView(this).apply {
+            text = "🌍 Route Planner"
+            textSize = 24f
+            gravity = Gravity.CENTER
+            setTextColor(Color.BLACK)
+            setTypeface(null, Typeface.BOLD)
+            layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT).apply {
+                bottomMargin = 32
+            }
+        }
+
+        val startPointEditText = EditText(this).apply {
+            hint = "Where you start"
+            layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT).apply {
+                bottomMargin = 24
+            }
+            setPadding(24, 24, 24, 24)
+            typeface = Typeface.DEFAULT_BOLD
+            textSize = 22f
+            setTextColor(Color.WHITE)
+            setHintTextColor(Color.LTGRAY)
+            background = resizeDrawable(R.drawable.edit_text_background, 800, 50)
+        }
+
+        val destinationEditText = EditText(this).apply {
+            hint = "Your destination"
+            layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT).apply {
+                bottomMargin = 24
+            }
+            setPadding(24, 24, 24, 24)
+            typeface = Typeface.DEFAULT_BOLD
+            textSize = 22f
+            setTextColor(Color.WHITE)
+            setHintTextColor(Color.LTGRAY)
+            background = resizeDrawable(R.drawable.edit_text_background, 800, 50)
+        }
+
+        fun showPopupMenu(view: View, resultTextView: TextView) {
+            val popupMenu = PopupMenu(this, view)
+            val menu = popupMenu.menu
+
+            menu.add("🚶‍♂️ Walking")
+            menu.add("🚴‍♀️ With bike")
+
+            popupMenu.setOnMenuItemClickListener { item ->
+                when (item.title) {
+                    "🚶‍♂️ Walking" -> {
+                        resultTextView.text = "🚶‍♂️ Walking"
+                        Toast.makeText(this, "Căutare rută pentru mers pe jos...", Toast.LENGTH_SHORT).show()
+                    }
+                    "🚴‍♀️ With bike" -> {
+                        resultTextView.text = "🚴‍♀️ With bike"
+                        Toast.makeText(this, "Căutare rută pentru bicicletă...", Toast.LENGTH_SHORT).show()
+                    }
+                }
+                true
+            }
+
+            popupMenu.show()
+        }
+
+        val modeLayout = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT).apply {
+                bottomMargin = 24
+            }
+        }
+
+        val menuButton = Button(this).apply {
+            text = "Choose Mode"
+            layoutParams = LayoutParams(500, LayoutParams.WRAP_CONTENT).apply {
+                marginEnd = 16
+            }
+            setBackgroundColor(Color.parseColor("#2196F3"))
+            setTextColor(Color.WHITE)
+            textSize = 18f
+            setPadding(16, 16, 16, 16)
+        }
+
+        val resultTextView = TextView(this).apply {
+            text = "Select Mode"
+            textSize = 18f
+            setTextColor(Color.BLACK)
+            layoutParams = LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT)
+        }
+
+        modeLayout.addView(menuButton)
+        modeLayout.addView(resultTextView)
+
+        val mapPlaceholder = FrameLayout(this).apply {
+            layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, 0).apply {
+                height = 0
+                weight = 1f
+            }
+            setBackgroundColor(Color.LTGRAY)
+            id = View.generateViewId()
+            setPadding(8, 8, 8, 8)
+        }
+
+        // Butonul circular "Back"
+        val backButton = Button(this).apply {
+            text = "←"  // Poti folosi simbolul săgeată sau alt text pentru back
+            layoutParams = LayoutParams(100, 100).apply {
+                topMargin = 32
+                leftMargin = 32
+            }
+            setBackgroundColor(Color.parseColor("#FF4081"))
+            setTextColor(Color.WHITE)
+            textSize = 24f
+            gravity = Gravity.CENTER
+            isAllCaps = false
+            // Aplicăm un fundal rotund pentru buton
+            background = resources.getDrawable(R.drawable.image3)
+        }
+
+        // Organizăm componentele în layout-ul principal
+        layout.addView(backButton)
+        layout.addView(titleText)
+        layout.addView(startPointEditText)
+        layout.addView(destinationEditText)
+        layout.addView(modeLayout)
+        layout.addView(mapPlaceholder)
+
+        // Setăm listener-ul pentru butonul "Choose Mode"
+        menuButton.setOnClickListener {
+            showPopupMenu(menuButton, resultTextView)
+        }
+        backButton.setOnClickListener {
+            showHomePage(MainActivity.currentUserEmail.toString())
+        }
+    }
+
+
+
     private fun showLoginUI() {
         layout.removeAllViews()
         val usersJson = sharedPreferences.getString(USERS_KEY, "{}")
@@ -561,8 +808,6 @@ class MainActivity : AppCompatActivity() {
         backButton.setOnClickListener {
             showInitialMenu()
         }
-
-
         layout.addView(emailEditText)
         layout.addView(passwordEditText)
         layout.addView(loginButton)
@@ -571,20 +816,238 @@ class MainActivity : AppCompatActivity() {
         loginButton.setOnClickListener {
             val email = emailEditText.text.toString()
             val password = passwordEditText.text.toString()
+            //val usersJson = sharedPreferences.getString(USERS_KEY, "{}")
+            //val users = JSONObject(usersJson)
+            Thread {
+                try {
+                    val json = JSONObject()
+                    json.put("email", email)
+                    json.put("password_hash", password)
+                    val url = URL("http://10.0.2.2:8000/api/auth/login") // corect pentru emulator
+                    val conn = url.openConnection() as HttpURLConnection
+                    conn.requestMethod = "POST"
+                    conn.setRequestProperty("Content-Type", "application/json")
+                    conn.doOutput = true
+                    val input = json.toString().toByteArray(Charsets.UTF_8)
+                    conn.outputStream.use { os ->
+                        os.write(input, 0, input.size)
+                    }
+                    val response = conn.inputStream.bufferedReader().use { it.readText() }
+                    val jsonResponse = JSONObject(response)
+                    val message = jsonResponse.getString("message")
+                    val token = jsonResponse.getString("token")
+                    Log.d("LoginResult", "Mesaj: $message")
+                    //Log.d("LoginResult", "Token: $token")
+                    runOnUiThread {
+                        Toast.makeText(this, "Răspuns: $response", Toast.LENGTH_LONG).show()
+                    }
+                    if (message == "logged in") {
+                        Log.d("Login Succesfull", "Login: $message")
+                        val url = URL("http://10.0.2.2:8000/api/users/email/$email") // corect pentru emulator
+                        val conn = url.openConnection() as HttpURLConnection
+                        conn.requestMethod = "GET"
+                        conn.setRequestProperty("Content-Type", "application/json")
+                        conn.setRequestProperty("Authorization", "Bearer $token")
+                        val response = try {
+                            conn.inputStream.bufferedReader().use { it.readText() }
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                            null
+                        }
 
-            val usersJson = sharedPreferences.getString(USERS_KEY, "{}")
-            val users = JSONObject(usersJson)
+                        // Dacă răspunsul este valid
+                        if (response != null) {
+                            val jsonResponse = JSONObject(response)
+                            Log.d("JSON Response", jsonResponse.toString())
+                            val userId = jsonResponse.getInt("user_id")  // Extrage user_id ca integer
+                            val email = jsonResponse.getString("email")  // Extrage email ca string
+                            val name = jsonResponse.optString("name", "Unknown")  // Extrage name, folosind optString pentru a evita null
+                            val role = jsonResponse.optString("role", "Unknown")  // Extrage role, folosind optString pentru a evita null
+                            val bio = jsonResponse.optString("bio", "No bio")  // Extrage bio, folosind optString pentru a evita null
+                            val preferences = jsonResponse.optString("preferences", "No preferences")  // Extrage preferences, folosind optString pentru a evita null
+                            Log.d("JSON Response", "user_id: $userId")
+                            runOnUiThread {
+                                MainActivity.authToken = token
+                                MainActivity.currentUserEmail = email
+                                MainActivity.currentUserId = userId
+                                MainActivity.nume = name
+                                MainActivity.rol = role
+                                MainActivity.bibliografie = bio
+                                MainActivity.preferinte = preferences
+                                MainActivity.parola = password
+                                Toast.makeText(this, "Login Successful", Toast.LENGTH_SHORT).show()
+                                showHomePage(email)
+                            }
+                        } else {
+                            runOnUiThread {
+                                Toast.makeText(this, "Failed to retrieve user data", Toast.LENGTH_SHORT).show()
+                            }
+                        }
 
-            if (users.has(email) && users.getString(email) == password) {
-                MainActivity.currentUserEmail = email
-                Toast.makeText(this, "Login Successful", Toast.LENGTH_SHORT).show()
-                showHomePage(email)
-
-            } else {
-                Toast.makeText(this, "Invalid credentials", Toast.LENGTH_SHORT).show()
-            }
+                        runOnUiThread {
+                            MainActivity.authToken = token;
+                            MainActivity.currentUserEmail = email
+                            Toast.makeText(this, "Login Successful", Toast.LENGTH_SHORT).show()
+                            showHomePage(email)
+                        }
+                    }
+                    else
+                    {
+                        runOnUiThread {
+                            Toast.makeText(this, "Invalid credentials", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    runOnUiThread {
+                        Toast.makeText(this, "Eroare: ${e.message}", Toast.LENGTH_LONG).show()
+                    }
+                }
+            }.start()
         }
     }
+    private fun showSavedUI(email: String) {
+        layout.removeAllViews()
+
+        val parentLayout = FrameLayout(this).apply {
+            layoutParams = FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.MATCH_PARENT
+            )
+            setBackgroundColor(Color.parseColor("#F5F5F5")) // Fundal general
+        }
+
+        val scrollView = ScrollView(this).apply {
+            layoutParams = FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.MATCH_PARENT
+            ).apply {
+                bottomMargin = 150 // Spațiu pentru butonul fixat
+            }
+        }
+
+        val container = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+            setPadding(32, 200, 32, 32)
+        }
+
+        fun createSavedSection(title: String, items: List<String>): CardView {
+            val card = CardView(this).apply {
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                ).apply {
+                    setMargins(0, 0, 0, 48) // Spațiu între secțiuni
+                }
+                radius = 24f
+                cardElevation = 10f
+                setContentPadding(40, 40, 40, 40)
+                setCardBackgroundColor(Color.WHITE)
+                minimumHeight = 600 // ✅ Face secțiunea vizibil mai mare
+            }
+
+            val sectionLayout = LinearLayout(this).apply {
+                orientation = LinearLayout.VERTICAL
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                )
+            }
+
+            val titleView = TextView(this).apply {
+                text = title
+                textSize = 22f
+                setTypeface(null, Typeface.BOLD)
+                setTextColor(Color.parseColor("#333333"))
+            }
+
+            sectionLayout.addView(titleView)
+
+            if (items.isEmpty()) {
+                val emptyText = TextView(this).apply {
+                    text = "No saved items"
+                    setPadding(0, 24, 0, 0)
+                    textSize = 16f
+                    setTextColor(Color.DKGRAY)
+                }
+                sectionLayout.addView(emptyText)
+            } else {
+                for (item in items) {
+                    val itemView = TextView(this).apply {
+                        text = "• $item"
+                        setPadding(0, 16, 0, 16)
+                        textSize = 17f
+                        setTextColor(Color.DKGRAY)
+                    }
+                    sectionLayout.addView(itemView)
+                }
+            }
+
+            card.addView(sectionLayout)
+            return card
+        }
+        // Dummy data
+        val savedMessages = listOf("Hi there!", "See you tomorrow.")
+        val savedAIResponses = listOf("Here's the summary of your day.", "I recommend learning Kotlin.")
+        val savedChallenges = listOf("30-Day Coding Challenge", "AI Art Contest")
+
+        container.addView(createSavedSection("⭐ Saved messages from people", savedMessages))
+        container.addView(createSavedSection("🤖 Saved responses from AI", savedAIResponses))
+        container.addView(createSavedSection("🎯 Saved Challenges / Events", savedChallenges))
+
+        scrollView.addView(container)
+        parentLayout.addView(scrollView)
+
+        val headerLayout = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            layoutParams = FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.WRAP_CONTENT,
+                FrameLayout.LayoutParams.WRAP_CONTENT,
+                Gravity.TOP or Gravity.START // sau CENTER_HORIZONTAL dacă vrei centrare
+            ).apply {
+                setMargins(32, 32, 32, 0)
+            }
+            gravity = Gravity.CENTER_VERTICAL
+        }
+
+// ✅ Butonul "Back" cu dimensiuni și parametrii corecți
+        val backButton = ImageButton(this).apply {
+            setImageResource(R.drawable.image3)
+            background = null
+            scaleType = ImageView.ScaleType.FIT_CENTER
+            layoutParams = LinearLayout.LayoutParams(200, 200) // Folosește LinearLayout.LayoutParams
+
+            setOnClickListener {
+                showHomePage(email)
+            }
+        }
+
+// ✅ Titlul "⭐ Favorites"
+        val titleText = TextView(this).apply {
+            text = "⭐ Favorites"
+            textSize = 30f
+            setTypeface(null, Typeface.BOLD)
+            setTextColor(Color.parseColor("#333333"))
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply {
+                setMargins(24, 0, 0, 0) // Spațiu între imagine și text
+            }
+        }
+
+// ✅ Adăugare în header și adăugare header în layout
+        headerLayout.addView(backButton)
+        headerLayout.addView(titleText)
+        parentLayout.addView(headerLayout)
+        //parentLayout.addView(backButton)
+        layout.addView(parentLayout)
+    }
+
 
     private fun showRegisterUI() {
         layout.removeAllViews()
@@ -689,6 +1152,129 @@ class MainActivity : AppCompatActivity() {
 
         editor.apply()
     }
+    fun showChallengesUI(email: String) {
+        // Creăm un layout principal pentru ecran
+        val mainLayout = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)
+            setPadding(16, 16, 16, 16)
+        }
+
+        // Creăm un ScrollView pentru a permite derularea listei de challenge-uri
+        val scrollView = ScrollView(this).apply {
+            layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)
+        }
+
+        // Creăm un LinearLayout care va conține lista de challenge-uri
+        val challengeLayout = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)
+            setPadding(16, 16, 16, 16)
+        }
+
+        // Lista de challenge-uri
+        val challenges = listOf(
+            "Challenge 1: Complete your first task",
+            "Challenge 2: Reach 100 points",
+            "Challenge 3: Invite a friend",
+            "Challenge 4: Achieve 5 achievements"
+        )
+
+        // Creăm un TextView pentru titlu
+        val titleTextView = TextView(this).apply {
+            text = "🏆 Your Challenges"
+            textSize = 32f
+            setTextColor(Color.BLACK)
+            setPadding(300, 0, 20, 100)  // Padding pentru a adăuga spațiu între titlu și lista de challenge-uri
+            gravity = Gravity.START
+        }
+
+        // Adăugăm fiecare challenge într-un CardView pentru a crea un chenar
+        challenges.forEach { challenge ->
+            val challengeCardView = CardView(this).apply {
+                layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT).apply {
+                    setMargins(0, 10, 0, 10)
+                }
+                radius = 20f  // Colțuri rotunjite
+                cardElevation = 8f  // Umbră subtilă
+                setCardBackgroundColor(Color.parseColor("#F0F0F0"))  // Culoare de fundal deschisă
+                val challengeTextView = TextView(this@MainActivity).apply {
+                    text = challenge
+                    textSize = 25f
+                    setTextColor(Color.BLACK)
+                    setPadding(20, 20, 20, 20)  // Padding consistent
+                    gravity = Gravity.START
+                }
+
+                addView(challengeTextView)
+            }
+
+            challengeLayout.addView(challengeCardView)
+        }
+
+        // Adăugăm titlul și layout-ul cu challenge-uri la ScrollView
+        scrollView.addView(challengeLayout)
+
+        // Adăugăm scrollView la layout-ul principal
+        mainLayout.addView(titleTextView)
+        mainLayout.addView(scrollView)
+
+        // Creăm un ImageButton pentru butonul rotund
+        val roundButton = ImageButton(this).apply {
+            setImageResource(R.drawable.image3)  // Imaginea dorită
+            layoutParams = LayoutParams(200, 200).apply {
+                setMargins(16, 16, 0, 0)  // Plasăm butonul în colțul din stânga sus
+            }
+            scaleType = ImageView.ScaleType.CENTER_CROP
+            background = null  // Îndepărtează fundalul implicit
+            setOnClickListener {
+                showHomePage(email)
+            }
+        }
+
+        // Creăm un container pentru butonul rotund și lista derulantă
+        val containerLayout = FrameLayout(this).apply {
+            layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)
+        }
+
+        // Adăugăm butonul rotund și lista de challenge-uri la container
+        containerLayout.addView(mainLayout)
+        containerLayout.addView(roundButton)
+
+        // Ștergem orice vizualizare existentă și adăugăm layout-ul final
+        layout.removeAllViews()
+        layout.addView(containerLayout)
+    }
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == 1001 && resultCode == RESULT_OK && data != null) {
+            val uri = data.data ?: return
+            currentUserEmail?.let {
+                saveProfileImage(it, uri)
+                showEditProfileUI(it)
+            }
+        }
+    }
+
+    private fun saveProfileImage(email: String, uri: Uri) {
+        val inputStream = contentResolver.openInputStream(uri) ?: return
+        val file = File(filesDir, "profile_$email.jpg")
+        val outputStream = FileOutputStream(file)
+        inputStream.copyTo(outputStream)
+        inputStream.close()
+        outputStream.close()
+    }
+
+    private fun getProfileImageUri(email: String): Uri? {
+        val file = File(filesDir, "profile_$email.jpg")
+        return if (file.exists()) Uri.fromFile(file) else null
+    }
+
+    private fun renameProfileImage(oldEmail: String, newEmail: String) {
+        val oldFile = File(filesDir, "profile_$oldEmail.jpg")
+        val newFile = File(filesDir, "profile_$newEmail.jpg")
+        if (oldFile.exists()) oldFile.renameTo(newFile)
+    }
 
     private fun showEditProfileUI(email: String) {
         layout.removeAllViews()
@@ -705,20 +1291,52 @@ class MainActivity : AppCompatActivity() {
             setPadding(16, 16, 16, 16)
         }
 
+        val profileImageView = ImageView(this).apply {
+            layoutParams = LinearLayout.LayoutParams(700, 700)
+            scaleType = ImageView.ScaleType.CENTER_CROP
+            setPadding(16, 16, 16, 16)
+            val uri = getProfileImageUri(email)
+            if (uri != null) {
+                setImageURI(uri)
+            } else {
+                setImageResource(R.drawable.poza_profil2) // imaginea default
+            }
+        }
+
+        val uploadButton = Button(this).apply {
+            text = "Choose Profile Picture"
+            setOnClickListener {
+                val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
+                    type = "image/*"
+                }
+                startActivityForResult(Intent.createChooser(intent, "Select Picture"), 1001)
+                currentUserEmail = email // save context for onActivityResult
+            }
+        }
+
         val nameInput = EditText(this).apply {
             hint = "Display name"
-            setText(currentName)
+            setText(MainActivity.nume ?: "Name: Unknown")
+            setText(if (MainActivity.nume == "null") "Name: Unknown" else MainActivity.nume)
         }
 
         val emailInput = EditText(this).apply {
             hint = "New email (leave unchanged if not editing)"
-            setText(email)
+            setText(MainActivity.currentUserEmail)
         }
 
         val passwordInput = EditText(this).apply {
             hint = "New password (leave blank if unchanged)"
+            setText(MainActivity.parola)
         }
-
+        val bioInput = EditText(this).apply {
+            hint = "Bio (leave unchanged if not editing)"
+            setText(if (MainActivity.bibliografie == "null") "Bio: Unknown" else MainActivity.bibliografie)
+        }
+        val preferencesInput = EditText(this).apply {
+            hint = "Preferences (leave unchanged if not editing)"
+            setText(if (MainActivity.preferinte == "null") "Preferences: Unknown" else MainActivity.preferinte)
+        }
         val saveButton = Button(this).apply {
             text = "Save Changes"
         }
@@ -731,7 +1349,49 @@ class MainActivity : AppCompatActivity() {
             val newName = nameInput.text.toString().trim()
             val newEmail = emailInput.text.toString().trim()
             val newPassword = passwordInput.text.toString().trim()
+            val new_bio = bioInput.text.toString().trim()
+            val new_Preferences = preferencesInput.text.toString().trim()
+            val userId = MainActivity.currentUserId
+            val url = URL("http://10.0.2.2:8000/api/users/$userId")
+            MainActivity.nume=newName
+            MainActivity.currentUserEmail=newEmail
+            MainActivity.parola=newPassword
+            MainActivity.preferinte=new_Preferences
+            MainActivity.bibliografie=new_bio
+            val jsonBody = JSONObject().apply {
+                put("email", newEmail)
+                put("password_hash", newPassword)
+                put("name", newName)
+                put("role", null)
+                put("bio", new_bio)
+                put("preferences", new_Preferences)
+            }
 
+            Thread {
+                try {
+                    with(url.openConnection() as HttpURLConnection) {
+                        requestMethod = "PUT"
+                        val token = MainActivity.authToken
+                        setRequestProperty("Content-Type", "application/json")
+                        setRequestProperty("Authorization", "Bearer $token")
+                        doOutput = true
+
+                        outputStream.bufferedWriter().use { writer ->
+                            writer.write(jsonBody.toString())
+                            writer.flush()
+                        }
+
+                        val responseCode = responseCode
+                        val responseMessage = inputStream.bufferedReader().readText()
+
+                        Log.d("HTTP_PUT", "Response code: $responseCode")
+                        Log.d("HTTP_PUT", "Response message: $responseMessage")
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    Log.e("HTTP_PUT", "Error: ${e.message}")
+                }
+            }.start()
             if (newName.isEmpty() || newEmail.isEmpty()) {
                 Toast.makeText(this, "Name and email cannot be empty", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
@@ -741,10 +1401,13 @@ class MainActivity : AppCompatActivity() {
                 Toast.makeText(this, "This email is already in use", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
+
             val passwordToStore = if (newPassword.isNotEmpty()) newPassword else users.getString(email)
             if (newEmail != email) {
                 users.remove(email)
+                renameProfileImage(email, newEmail)
             }
+
             users.put(newEmail, passwordToStore)
             sharedPreferences.edit().putString(USERS_KEY, users.toString()).apply()
             profilePrefs.edit().remove("name_$email").apply()
@@ -760,12 +1423,17 @@ class MainActivity : AppCompatActivity() {
         }
 
         layout.addView(title)
+        layout.addView(profileImageView)
+        layout.addView(uploadButton)
         layout.addView(nameInput)
         layout.addView(emailInput)
         layout.addView(passwordInput)
+        layout.addView(bioInput)
+        layout.addView(preferencesInput)
         layout.addView(saveButton)
         layout.addView(backButton)
     }
+
     private fun showHomePage(email: String) {
         layout.removeAllViews()
         val rootLayout = FrameLayout(this).apply {
@@ -848,6 +1516,9 @@ class MainActivity : AppCompatActivity() {
                         "🍲  Recipe Recommender" to {
                             startRecipeChatAI()
                         },
+                        "🌍 Route Planner" to {
+                            RoutePlanner()
+                        },
                         "📝  Add Notes" to {
                             showAddNotesUI(email) // Apelăm funcția pentru a adăuga note
                         },
@@ -861,10 +1532,10 @@ class MainActivity : AppCompatActivity() {
                             showHistoryUI()
                         },
                         "⭐  Saved" to {
-                            //showSavedUI(email)
+                            showSavedUI(email)
                         },
                         "🏆  Challenges" to {
-                            //showChallengesUI(email)
+                            showChallengesUI(email)
                         }
                     )
                     for ((text, action) in menuItems) {
@@ -1070,7 +1741,114 @@ class MainActivity : AppCompatActivity() {
         val originalUserList = mutableListOf<String>()
         val lista_useri_necititi = getUsersWithUnreadMessages(email)
         Log.d("Lista useri necititi", "User List: $lista_useri_necititi")
-        val userList = mutableListOf<String>()
+        Thread {
+            try {
+                // URL-ul API-ului pentru a obține utilizatorii
+                val url = URL("http://10.0.2.2:8000/api/users")
+                val conn = url.openConnection() as HttpURLConnection
+                val token = MainActivity.authToken
+                conn.requestMethod = "GET"
+                conn.setRequestProperty("Content-Type", "application/json")
+                conn.setRequestProperty("Authorization", "Bearer $token") // Adaugă token dacă e necesar
+                // Conectează-te la server și primește răspunsul
+                conn.connect()
+
+                // Dacă cererea a fost reușită (status code 200)
+                if (conn.responseCode == HttpURLConnection.HTTP_OK) {
+                    // Citește răspunsul JSON
+                    val response = conn.inputStream.bufferedReader().use { it.readText() }
+
+                    // Actualizează UI-ul pe thread-ul principal
+                    runOnUiThread {
+                        try {
+                            // Parsează răspunsul JSON
+                            val jsonArray = JSONArray(response)
+                            val userList = mutableListOf<String>()
+                            val originalUserList = mutableListOf<String>()
+                            val listaUseriNecititi = getUsersWithUnreadMessages(email)
+
+                            Log.d("Lista useri necititi", "User List: $response")
+
+                            // Parcurge fiecare utilizator din răspunsul JSON
+                            for (i in 0 until jsonArray.length()) {
+                                val user = jsonArray.getJSONObject(i)
+                                val userName = user.getString("email")
+
+                                // Adaugă utilizatorul în lista originală
+                                originalUserList.add(userName)
+
+                                // Verifică dacă utilizatorul are mesaje necitite
+                                if (listaUseriNecititi.contains(userName)) {
+                                    userList.add("$userName (nou)")
+                                } else {
+                                    userList.add(userName)
+                                }
+                            }
+
+                            Log.d("showUserListForChat", "User List: $userList")
+
+                            // Adaugă utilizatorii în UI (de exemplu, într-un ListView)
+                            if (userList.isEmpty()) {
+                                Toast.makeText(this, "No users available for chat", Toast.LENGTH_SHORT).show()
+                            } else {
+                                val userListAdapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, userList)
+                                val userListView = ListView(this).apply {
+                                    adapter = userListAdapter
+                                    layoutParams = LinearLayout.LayoutParams(
+                                        LinearLayout.LayoutParams.MATCH_PARENT,
+                                        0,
+                                        1f
+                                    )
+                                }
+                                userListView.setOnItemClickListener { _, _, position, _ ->
+                                    val selectedUser = userList[position]
+                                    showChatUI(email, selectedUser)  // Începe chat-ul cu utilizatorul selectat
+                                }
+                                layout.addView(userListView)
+
+                                // Creează un buton "Back"
+                                val bottomLayout = LinearLayout(this).apply {
+                                    orientation = LinearLayout.VERTICAL
+                                    layoutParams = LinearLayout.LayoutParams(
+                                        LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT
+                                    )
+                                }
+
+                                val backButton = Button(this).apply {
+                                    text = "Back"
+                                    layoutParams = LinearLayout.LayoutParams(
+                                        LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT
+                                    )
+                                }
+
+                                backButton.setOnClickListener {
+                                    showHomePage(email)
+                                }
+
+                                bottomLayout.addView(backButton)
+                                layout.addView(bottomLayout)
+                            }
+
+                        } catch (e: Exception) {
+                            Log.e("Error", "Error parsing users response", e)
+                            Toast.makeText(this, "Error loading users", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                } else {
+                    runOnUiThread {
+                        Toast.makeText(this, "Error: ${conn.responseCode}", Toast.LENGTH_SHORT).show()
+                    }
+                }
+                conn.disconnect()
+            } catch (e: Exception) {
+                Log.e("Error", "Error fetching users", e)
+                runOnUiThread {
+                    Toast.makeText(this, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }.start()
+
+        /*val userList = mutableListOf<String>()
         for (key in users.keys()) {
             if (key != email) {
                 originalUserList.add(key)
@@ -1081,9 +1859,7 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
-
         Log.d("showUserListForChat", "User List: $userList")
-
         if (userList.isEmpty()) {
             Toast.makeText(this, "No users available for chat", Toast.LENGTH_SHORT).show()
         } else {
@@ -1110,12 +1886,12 @@ class MainActivity : AppCompatActivity() {
                 layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
             }
 
-            backButton.setOnClickListener {
+            /*backButton.setOnClickListener {
                 showHomePage(email)
-            }
+            }*/
             bottomLayout.addView(backButton)
             layout.addView(bottomLayout)
-        }
+        }*/
     }
     private fun showChatUI(email: String, selectedUser: String) {
         layout.removeAllViews()
@@ -1485,7 +2261,6 @@ class MainActivity : AppCompatActivity() {
     private fun startRecipeChatAI() {
         //val selectedAllergens = mutableListOf<String>()
         val dialog = Dialog(this, android.R.style.Theme_Black_NoTitleBar_Fullscreen)
-
         val scrollView = ScrollView(this).apply {
             layoutParams = ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
@@ -1850,7 +2625,6 @@ class MainActivity : AppCompatActivity() {
             textSize = 18f
             setOnClickListener {
                 val userMessage = messageInput.text.toString()
-<<<<<<< HEAD
                 if (userMessage.isBlank()) {
                     Toast.makeText(this@MainActivity, "Write a question.", Toast.LENGTH_SHORT).show()
                     return@setOnClickListener
@@ -1866,13 +2640,21 @@ class MainActivity : AppCompatActivity() {
         """.trimIndent()
                 Log.d("BACK_BUTTON", "JSON: $json")
 
-                Thread {
+                Thread  {
                     try {
-                        val url = URL("http://10.0.2.2:5000/recommend") // Emulator accesează localhost astfel
+                        val url = URL("http://10.0.2.2:8000/api/recipes/recommend")  // Corect: port 8000, cale /api/recipes/recommend
                         val conn = url.openConnection() as HttpURLConnection
                         conn.requestMethod = "POST"
+                        val token = MainActivity.authToken
                         conn.setRequestProperty("Content-Type", "application/json")
+                        conn.setRequestProperty("Authorization", "Bearer $token") // Adaugă token dacă e necesar
                         conn.doOutput = true
+
+                        // Creează JSON-ul de request (modifică în funcție de schema ta)
+                        val json = JSONObject().apply {
+                            put("ingredients", "chicken, rice, garlic")
+                            put("preferences", "low-carb")
+                        }.toString()
 
                         // Trimite JSON-ul
                         conn.outputStream.use { os ->
@@ -1891,7 +2673,6 @@ class MainActivity : AppCompatActivity() {
                                     append("🍽️ Recipe: ${jsonObject.getString("name")}\n\n")
 
                                     val rawIngredients = jsonObject.getString("ingredients")
-// Scoate parantezele pătrate și despărțitorii
                                     val cleaned = rawIngredients
                                         .replace("[", "")
                                         .replace("]", "")
@@ -1904,7 +2685,6 @@ class MainActivity : AppCompatActivity() {
                                     for (ingredient in cleaned) {
                                         append("  • $ingredient\n")
                                     }
-
 
                                     append("\n📝 Directions:\n${jsonObject.getString("directions")}\n")
 
@@ -1926,7 +2706,6 @@ class MainActivity : AppCompatActivity() {
                                 responseView.text = formatted
 
                             } catch (e: Exception) {
-                                //responseView.text = "❌ Failed to parse JSON response: ${e.message}"
                                 responseView.text = "❌ I couldn't find a good recipe for you. I am sorry."
                             }
                         }
@@ -1938,13 +2717,6 @@ class MainActivity : AppCompatActivity() {
                         }
                     }
                 }.start()
-=======
-                if (userMessage.isNotBlank()) {
-                    responseView.text = "AI: Îți recomand o rețetă pe baza mesajului: \"$userMessage\""
-                } else {
-                    Toast.makeText(this@MainActivity, "Scrie o întrebare.", Toast.LENGTH_SHORT).show()
-                }
->>>>>>> b9d70f982ffbe6a4e4b528dec6d0d37f3e6a78d7
             }
         }
 
