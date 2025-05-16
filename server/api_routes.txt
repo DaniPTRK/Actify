@@ -1,24 +1,13 @@
     Base URL: 'http://127.0.0.1:10001/api'
 
 
- -> GET `/ping`
-IN:
-{
-
-}
-OUT:
-{
-    "message": "string"
-}
-
-
  • Auth
  
  -> POST /auth/register
 IN:
 {
   "username": "string",
-  "password": "string"
+  "password_hash": "string"
 }
 OUT:
 {
@@ -29,20 +18,21 @@ OUT:
 IN:
 {
   "username": "string",
-  "password": "string"
+  "password_hash": "string"
 }
 OUT:
 {
-  "message": "string"
+  "message": "string",
+  "token": "string"
 }
 
 
  • Users
 
- -> POST /users
+ -> POST /users/
 IN:
 {
-  "username": "string",
+  "email": "string",
   "password_hash": "string",
   "name": "string | null",
   "role": "string | null",
@@ -52,14 +42,14 @@ IN:
 OUT:
 {
   "user_id": "integer",
-  "username": "string",
+  "email": "string",
   "name": "string | null",
   "role": "string | null",
   "bio": "string | null",
   "preferences": "string | null"
 }
 
- -> GET /users
+ -> GET /users/
 IN:
 {
 
@@ -68,7 +58,7 @@ OUT:
 [
   {
     "user_id": "integer",
-    "username": "string",
+    "email": "string",
     "name": "string | null",
     "role": "string | null",
     "bio": "string | null",
@@ -77,7 +67,7 @@ OUT:
 ]
 
 
- -> GET /users/{user_id}
+ -> GET /users/{user_id}/
 IN:
 {
 
@@ -85,7 +75,7 @@ IN:
 OUT:
 {
   "user_id": "integer",
-  "username": "string",
+  "email": "string",
   "name": "string | null",
   "role": "string | null",
   "bio": "string | null",
@@ -93,15 +83,15 @@ OUT:
 }
 
 
- -> PUT /users/{user_id}
+ -> GET /users/email/{email}/
 IN:
 {
 
 }
 OUT:
 {
-  "username": "string",
-  "password_hash": "string",
+  "user_id": "integer",
+  "email": "string",
   "name": "string | null",
   "role": "string | null",
   "bio": "string | null",
@@ -109,21 +99,54 @@ OUT:
 }
 
 
- -> DELETE /users/{user_id}
+ -> GET /users/name/{name}/
 IN:
 {
-    "user_id": "integer"
+
+}
+OUT:
+{
+  "user_id": "integer",
+  "email": "string",
+  "name": "string | null",
+  "role": "string | null",
+  "bio": "string | null",
+  "preferences": "string | null"
+}
+
+
+ -> PUT /users/{user_id}/
+IN:
+{
+
+}
+OUT:
+{
+  "user_id": "integer",
+  "email": "string",
+  "name": "string | null",
+  "role": "string | null",
+  "bio": "string | null",
+  "preferences": "string | null"
+}
+
+
+ -> DELETE /users/{user_id}/
+IN:
+{
+
 }
 OUT:
 {
 
 }
+
 
 
  • XP Badges
 
 
- -> POST /xp-badges
+ -> POST /xp-badges/
 IN:
 {
   "user_id": "integer",
@@ -139,7 +162,7 @@ OUT:
   "earned_at": "string (ISO datetime)"
 }
 
- -> GET /xp-badges
+ -> GET /xp-badges/
 IN:
 {
 
@@ -156,16 +179,19 @@ OUT:
 ]
 
 
-#TODO CONTINUE
 
- -> GET /xp-badges/{record_id}
+ -> GET /xp-badges/{record_id}/
 IN:
 {
 
 }
 OUT:
 {
-
+  "record_id": "integer",
+  "user_id": "integer",
+  "xp_points": "integer",
+  "badge_name": "string",
+  "earned_at": "string (ISO datetime)"
 }
 
  -> PUT /xp-badges/{record_id}
@@ -176,16 +202,28 @@ IN:
 }
 OUT:
 {
-    
+  "record_id": "integer",
+  "user_id": "integer",
+  "xp_points": "integer",
+  "badge_name": "string",
+  "earned_at": "string (ISO datetime)" 
 }
-Response 200 OK (updated badge)
+
 
  -> DELETE /xp-badges/{record_id}
-Response 204 No Content
+IN:
+{
 
-Activity Routes
- -> POST /activity-routes
+}
+OUT:
+{
 
+}
+
+ • Activity Routes
+
+
+ -> POST /activity-routes/
 IN:
 {
   "user_id": "integer",
@@ -194,7 +232,6 @@ IN:
   "distance_km": "number",
   "estimated_time_min": "integer"
 }
-
 OUT:
 {
   "route_id": "integer",
@@ -206,47 +243,84 @@ OUT:
 }
 
 
- -> GET /activity-routes
-Response 200 OK
+ -> GET /activity-routes/
+IN:
+{
 
-
-
-
+}
+OUT:
 [
-  { /* same as  -> POST response */ }
+  {
+    "route_id": "integer",
+    "user_id": "integer",
+    "activity_type": "string",
+    "name": "string",
+    "distance_km": "number",
+    "estimated_time_min": "integer"
+  }
 ]
- -> GET /activity-routes/{route_id}
-Path parameter: route_id: integer
-
-Response 200 OK (single route)
-
- -> PUT /activity-routes/{route_id}
-Request JSON (any subset):
 
 
+ -> GET /activity-routes/{route_id}/
+IN:
+{
+
+}
+OUT:
+{
+  "route_id": "integer",
+  "user_id": "integer",
+  "activity_type": "string",
+  "name": "string",
+  "distance_km": "number",
+  "estimated_time_min": "integer"
+}
 
 
+ -> PUT /activity-routes/{route_id}/
+IN:
 {
   "activity_type": "string | null",
   "name": "string | null",
   "distance_km": "number | null",
   "estimated_time_min": "integer | null"
 }
-Response 200 OK (updated route)
+OUT:
+{
+  "route_id": "integer",
+  "user_id": "integer",
+  "activity_type": "string",
+  "name": "string",
+  "distance_km": "number",
+  "estimated_time_min": "integer"
+}
 
- -> DELETE /activity-routes/{route_id}
-Response 204 No Content
 
-Events
- -> POST /events
-IN{
+ -> DELETE /activity-routes/{route_id}/
+IN:
+{
+
+}
+OUT:
+{
+
+}
+
+
+ • Events
+
+
+ -> POST /events/
+IN:
+{
   "title": "string",
   "description": "string",
   "location": "string",
   "date_time": "string (ISO datetime)",
   "max_participants": "integer"
 }
-Response 201 OUT:{
+OUT:
+{
   "event_id": "integer",
   "title": "string",
   "description": "string",
@@ -254,26 +328,42 @@ Response 201 OUT:{
   "date_time": "string (ISO datetime)",
   "max_participants": "integer"
 }
- -> GET /events
-Response 200 OK
 
 
+ -> GET /events/
+IN:
+{
 
-
+}
+OUT:
 [
-  { /* same as  -> POST response */ }
+  {
+    "event_id": "integer",
+    "title": "string",
+    "description": "string",
+    "location": "string",
+    "date_time": "string (ISO datetime)",
+    "max_participants": "integer"
+  }
 ]
- -> GET /events/{event_id}
-Path parameter: event_id: integer
 
-Response 200 OK (single event)
+ -> GET /events/{event_id}/
+IN:
+{
 
- -> PUT /events/{event_id}
-Request JSON (any subset):
+}
+OUT:
+{
+  "event_id": "integer",
+  "title": "string",
+  "description": "string",
+  "location": "string",
+  "date_time": "string (ISO datetime)",
+  "max_participants": "integer"
+}
 
-
-
-
+ -> PUT /events/{event_id}/
+IN:
 {
   "title": "string | null",
   "description": "string | null",
@@ -281,49 +371,141 @@ Request JSON (any subset):
   "date_time": "string (ISO datetime) | null",
   "max_participants": "integer | null"
 }
-Response 200 OK (updated event)
+OUT:
+{
+  "event_id": "integer",
+  "title": "string",
+  "description": "string",
+  "location": "string",
+  "date_time": "string (ISO datetime)",
+  "max_participants": "integer"
+}
 
- -> DELETE /events/{event_id}
-Response 204 No Content
+ -> DELETE /events/{event_id}/
+IN:
+{
 
-Posts
- -> POST /posts
-IN{
+}
+OUT:
+{
+
+}
+
+
+
+ • Posts
+
+
+ -> POST /posts/
+IN:
+{
   "user_id": "integer",
   "content": "string",
   "media_url": "string | null",
   "timestamp": "string (ISO datetime) | null"
 }
-Response 201 OUT:{
+OUT:
+{
   "post_id": "integer",
   "user_id": "integer",
   "content": "string",
   "media_url": "string | null",
   "timestamp": "string (ISO datetime)"
 }
- -> GET /posts
-Response 200 OK
 
+ -> GET /posts/
+IN:
+{
 
-
-
+}
+OUT:
 [
-  { /* same as  -> POST response */ }
+  {
+    "post_id": "integer",
+    "user_id": "integer",
+    "content": "string",
+    "media_url": "string | null",
+    "timestamp": "string (ISO datetime)"
+  }
 ]
- -> GET /posts/{post_id}
-Path parameter: post_id: integer
 
-Response 200 OK (single post)
 
- -> PUT /posts/{post_id}
-IN{
+ -> GET /posts/{post_id}/
+IN:
+{
+
+}
+OUT:
+{
+  "post_id": "integer",
+  "user_id": "integer",
+  "content": "string",
+  "media_url": "string | null",
+  "timestamp": "string (ISO datetime)"
+}
+
+ -> PUT /posts/{post_id}/
+IN:
+{
   "content": "string | null",
   "media_url": "string | null"
 }
-Response 200 OK (updated post)
+OUT:
+{
+  "post_id": "integer",
+  "user_id": "integer",
+  "content": "string",
+  "media_url": "string | null",
+  "timestamp": "string (ISO datetime)"
+}
 
- -> DELETE /posts/{post_id}
-Response 204 No Content
+
+ -> DELETE /posts/{post_id}/
+IN:
+{
+
+}
+OUT:
+{
+
+}
+
+
+
+ • Recipes
+
+ -> POST /recipes/recommend/
+IN:
+{
+  "id": "integer | null",
+  "user_text": "string",
+  "allergens": ["string | null"],
+  "diet": "string",
+  "dish_category": "string",
+  "time_min": "integer | null",
+  "time_max": "integer | null"
+}
+OUT:
+{
+  "id": "integer | null",
+  "image": "string",
+  "name": "string",
+  "diet_type": "string",
+  "allergens": ["string | null"],
+  "total_time": "integer",
+  "ingredients": ["string"],
+  "directionts": "string",
+  "site": "string",
+  "calories": "float | null"
+}
+
+
+
+    TODO CONTINUE
+
+
+
+
 
 Comments
  -> POST /comments

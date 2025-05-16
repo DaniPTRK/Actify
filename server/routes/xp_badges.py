@@ -31,14 +31,14 @@ class XPBadgeUpdate(SQLModel):
     badge_name: str | None = None
 
 
-@router.get("", response_model=List[XPBadgeModel])
+@router.get("/", response_model=List[XPBadgeModel])
 async def read_badges(
     current_user: UserModel = Depends(verify_jwt)
 ):
     return list_badges()
 
 
-@router.post("", response_model=XPBadgeModel, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=XPBadgeModel, status_code=status.HTTP_201_CREATED)
 async def create(
     badge: XPBadgeCreate,
     current_user: UserModel = Depends(verify_jwt)
@@ -46,7 +46,7 @@ async def create(
     return create_badge(XPBadgeModel(**badge.dict()))
 
 
-@router.get("/{record_id}", response_model=XPBadgeModel)
+@router.get("/{record_id}/", response_model=XPBadgeModel)
 async def read_badge(
     record_id: int,
     current_user: UserModel = Depends(verify_jwt)
@@ -57,7 +57,7 @@ async def read_badge(
     return b
 
 
-@router.put("/{record_id}", response_model=XPBadgeModel)
+@router.put("/{record_id}/", response_model=XPBadgeModel)
 async def replace_badge(
     record_id: int,
     badge: XPBadgeUpdate,
@@ -69,7 +69,7 @@ async def replace_badge(
     return updated
 
 
-@router.delete("/{record_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{record_id}/", status_code=status.HTTP_204_NO_CONTENT)
 async def remove_badge(
     record_id: int,
     current_user: UserModel = Depends(verify_jwt)

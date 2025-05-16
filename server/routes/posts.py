@@ -36,14 +36,14 @@ class PostUpdate(SQLModel):
     media_url: str | None = None
 
 
-@router.get("", response_model=List[PostModel])
+@router.get("/", response_model=List[PostModel])
 async def read_posts(
     current_user: UserModel = Depends(verify_jwt)
 ):
     return list_posts()
 
 
-@router.post("", response_model=PostModel, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=PostModel, status_code=status.HTTP_201_CREATED)
 async def create(
     p: PostCreate,
     current_user: UserModel = Depends(verify_jwt)
@@ -55,7 +55,7 @@ async def create(
     return create_post(PostModel(**data), current_user)
 
 
-@router.get("/{post_id}", response_model=PostModel)
+@router.get("/{post_id}/", response_model=PostModel)
 async def read_post(
     post_id: int,
     current_user: UserModel = Depends(verify_jwt)
@@ -66,7 +66,7 @@ async def read_post(
     return p
 
 
-@router.put("/{post_id}", response_model=PostModel)
+@router.put("/{post_id}/", response_model=PostModel)
 async def replace_post(
     post_id: int,
     p: PostUpdate,
@@ -94,7 +94,7 @@ async def replace_post(
     return updated
 
 
-@router.delete("/{post_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{post_id}/", status_code=status.HTTP_204_NO_CONTENT)
 async def remove_post(
     post_id: int,
     current_user: UserModel = Depends(verify_jwt)

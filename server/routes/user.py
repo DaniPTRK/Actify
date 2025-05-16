@@ -48,7 +48,7 @@ async def create(
     return create_user(UserModel(**user.dict()))
 """
 
-@router.get("", response_model=List[UserRead])
+@router.get("/", response_model=List[UserRead])
 async def read_all(
     current_user: UserModel = Depends(verify_jwt)
 ):
@@ -56,7 +56,7 @@ async def read_all(
 
 
 ''' get user by user_id'''
-@router.get("/{user_id}", response_model=UserRead)
+@router.get("/{user_id}/", response_model=UserRead)
 async def read_one_by_user_id(
     user_id: int,
     current_user: UserModel = Depends(verify_jwt)
@@ -68,7 +68,7 @@ async def read_one_by_user_id(
 
 
 ''' get user by email'''
-@router.get("/email/{email}", response_model=UserRead)
+@router.get("/email/{email}/", response_model=UserRead)
 async def read_one_by_email(
     email: str,
     current_user: UserModel = Depends(verify_jwt)
@@ -82,7 +82,7 @@ async def read_one_by_email(
 
 
 ''' get users by name'''
-@router.get("/name/{name}", response_model=UserRead)
+@router.get("/name/{name}/", response_model=UserRead)
 async def read_all_by_name(
     name: str,
     current_user: UserModel = Depends(verify_jwt)
@@ -95,7 +95,7 @@ async def read_all_by_name(
     return users
 
 
-@router.put("/{user_id}", response_model=UserRead)
+@router.put("/{user_id}/", response_model=UserRead)
 async def replace(
     user_id: int,
     new_user: UserCreate,
@@ -120,7 +120,7 @@ async def replace(
     return updated
 
 
-@router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{user_id}/", status_code=status.HTTP_204_NO_CONTENT)
 async def remove(
     user_id: int,
     current_user: UserModel = Depends(verify_jwt)

@@ -29,3 +29,27 @@ def get_session() -> Session:
             session.rollback()
             raise
         
+        
+def get_all_tables_and_describe() -> None:
+    from sqlalchemy import inspect
+
+    inspector = inspect(engine)
+    table_names = inspector.get_table_names()
+
+    print(f"\nFound {len(table_names)} table(s):\n")
+
+    for table in table_names:
+        print(f"Table: {table}")
+        columns = inspector.get_columns(table)
+        for col in columns:
+            name = col["name"]
+            dtype = col["type"]
+            nullable = col["nullable"]
+            default = col.get("default", None)
+            print(f"  - {name} ({dtype}), nullable: {nullable}, default: {default}")
+        print("-" * 40)
+    
+            
+from models import Recipe
+#get_all_tables_and_describe()
+Recipe.metadata.create_all(engine, tables=[Recipe.__table__])

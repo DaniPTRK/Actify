@@ -35,21 +35,21 @@ class RouteUpdate(SQLModel):
     estimated_time_min: int | None = None
 
 
-@router.get("", response_model=List[RouteModel])
+@router.get("/", response_model=List[RouteModel])
 async def read_routes(
     current_user: UserModel = Depends(verify_jwt)
 ):
     return list_routes()
 
 
-@router.post("", response_model=RouteModel, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=RouteModel, status_code=status.HTTP_201_CREATED)
 async def create(r: RouteCreate,
     current_user: UserModel = Depends(verify_jwt)
 ):
     return create_route(RouteModel(**r.dict()))
 
 
-@router.get("/{route_id}", response_model=RouteModel)
+@router.get("/{route_id}/", response_model=RouteModel)
 async def read_route(
     route_id: int,
     current_user: UserModel = Depends(verify_jwt)
@@ -60,7 +60,7 @@ async def read_route(
     return r
 
 
-@router.put("/{route_id}", response_model=RouteModel)
+@router.put("/{route_id}/", response_model=RouteModel)
 async def replace_route(
     route_id: int, r: RouteUpdate,
     current_user: UserModel = Depends(verify_jwt)
@@ -71,7 +71,7 @@ async def replace_route(
     return updated
 
 
-@router.delete("/{route_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{route_id}/", status_code=status.HTTP_204_NO_CONTENT)
 async def remove_route(
     route_id: int,
     current_user: UserModel = Depends(verify_jwt)

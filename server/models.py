@@ -93,17 +93,20 @@ class Like(SQLModel, table=True):
     __tablename__ = "Likes"
     like_id: Optional[int] = Field(default=None, primary_key=True)
     user_id: int = Field(index=True)
-    post_id: Optional[int] = Field(default=None, index=True)
-    comment_id: Optional[int] = Field(default=None, index=True)
+    post_id: int
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
 
 class Recipe(SQLModel, table=True):
-    __tablename__ = "Retete"
+    __tablename__ = "Retete"    
     recipe_id: Optional[int] = Field(default=None, primary_key=True)
-    author_id: int = Field(index=True)
-    title: str
-    description: str
-    ingredients: str
-    steps: str
+    image: str
+    name: str
+    diet_type: str
+    allergens: Optional[str]
+    total_time: int
+    ingredients: Optional[str]
+    directionts: str
+    site: str
+    calories: float | None = None
     created_at: datetime = Field(default_factory=datetime.utcnow)

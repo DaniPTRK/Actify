@@ -38,14 +38,14 @@ class EventUpdate(SQLModel):
     max_participants: int | None = None
 
 
-@router.get("", response_model=List[EventModel])
+@router.get("/", response_model=List[EventModel])
 async def read_events(
     current_user: UserModel = Depends(verify_jwt)
 ):
     return list_events()
 
 
-@router.post("", response_model=EventModel, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=EventModel, status_code=status.HTTP_201_CREATED)
 async def create(
     e: EventCreate,
     current_user: UserModel = Depends(verify_jwt)
@@ -53,7 +53,7 @@ async def create(
     return create_event(EventModel(**e.dict()))
 
 
-@router.get("/{event_id}", response_model=EventModel)
+@router.get("/{event_id}/", response_model=EventModel)
 async def read_event(
     event_id: int,
     current_user: UserModel = Depends(verify_jwt)
@@ -64,7 +64,7 @@ async def read_event(
     return ev
 
 
-@router.put("/{event_id}", response_model=EventModel)
+@router.put("/{event_id}/", response_model=EventModel)
 async def replace_event(
     event_id: int,
     e: EventUpdate,
@@ -76,7 +76,7 @@ async def replace_event(
     return updated
 
 
-@router.delete("/{event_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{event_id}/", status_code=status.HTTP_204_NO_CONTENT)
 async def remove_event(
     event_id: int,
     current_user: UserModel = Depends(verify_jwt),
