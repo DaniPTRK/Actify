@@ -494,7 +494,6 @@ OUT:
   "allergens": ["string | null"],
   "total_time": "integer",
   "ingredients": ["string"],
-  "directionts": "string",
   "site": "string",
   "calories": "float | null"
 }

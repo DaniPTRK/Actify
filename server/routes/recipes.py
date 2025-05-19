@@ -3,6 +3,7 @@ from datetime import datetime
 from fastapi import APIRouter, HTTPException, status, Depends
 from sqlmodel import SQLModel, Field
 from typing import Optional, List
+from models import Recipe
 import sys
 import os
 
@@ -12,8 +13,8 @@ from services.recipes import (
     create_recipe,
     list_recipes,
     get_recipe,
-    update_recipe,
     delete_recipe,
+    get_recipes_by_user_id
 )
 from models import Recipe as RecipeModel
 from models import Users as UserModel
@@ -37,14 +38,14 @@ class RecommendRequest(SQLModel, table=True):
     time_max: int = 500
 
 class RecommendResponse(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
+    recipe_id: Optional[int] = Field(default=None, primary_key=True)
     image: str
     name: str
+    user_input: str
     diet_type: str
     allergens: Optional[str]
     total_time: int
     ingredients: Optional[str]
-    directionts: str
     site: str
     calories: float | None = None
 
@@ -66,6 +67,19 @@ async def read_recipe(
     return r
 
 
+@router.get("/user_id/{user_id}/", response_model=List[RecipeModel])
+async def read_recipes_by_user_id(
+    user_id: int,
+    current_user: UserModel = Depends(verify_jwt)
+):
+    r = get_recipes_by_user_id(user_id)
+
+    if not r:
+        raise HTTPException(status_code=404, detail="Recipe not found")
+
+    return r
+
+
 @router.delete("/{recipe_id}/", status_code=status.HTTP_204_NO_CONTENT)
 async def remove_recipe(
     recipe_id: int,
@@ -83,18 +97,33 @@ async def remove_recipe(
              include_in_schema=True)
 async def recommend_endpoint(payload: RecommendRequest,
                              current_user: UserModel = Depends(verify_jwt)):
-    
+
     result = recommend_api(payload.dict())
 
     if isinstance(result, dict) and result.get("error"):
-        raise HTTPException(status_code=406, detail=result["Did't find any content that conforms to the criteria given by the user agent."])
-    
-    
-    data = rec.dict(exclude_unset=True)
+        raise HTTPException(status_code=406, detail=result.get("error", "Recommendation failed."))
 
-    if data.get("created_at") is None:
-        data["created_at"] = datetime.utcnow()
-
-    create_recipe(RecipeModel(**data))
+    data = result
     
+    for field in ["ingredients", "allergens"]:
+        if isinstance(data.get(field), list):
+            data[field] = ", ".join(data[field])
+
+    # Create recipe using corrected keys
+    recipe = Recipe(
+        image=data["image"],
+        name=data["name"],
+        diet_type=data["diet_type"],
+        allergens=data.get("allergens"),
+        total_time=data["total_time"],
+        ingredients=data.get("ingredients"),
+        directionts=data["directions"],
+        site=data["site"],
+        calories=data.get("calories"),
+        user_id=current_user.user_id,
+        user_input=payload.user_text
+    )
+
+    create_recipe(recipe)
+
     return result

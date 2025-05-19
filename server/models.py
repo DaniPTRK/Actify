@@ -100,13 +100,14 @@ class Like(SQLModel, table=True):
 class Recipe(SQLModel, table=True):
     __tablename__ = "Retete"    
     recipe_id: Optional[int] = Field(default=None, primary_key=True)
+    user_id: int = Field(index=True)
+    user_input: str
     image: str
     name: str
     diet_type: str
     allergens: Optional[str]
     total_time: int
     ingredients: Optional[str]
-    directionts: str
     site: str
     calories: float | None = None
     created_at: datetime = Field(default_factory=datetime.utcnow)

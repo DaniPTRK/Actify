@@ -17,16 +17,12 @@ def list_recipes() -> List[Recipe]:
 def get_recipe(recipe_id: int) -> Optional[Recipe]:
     with get_session() as session:
         return session.get(Recipe, recipe_id)
+    
 
-def update_recipe(recipe_id: int, updates: dict) -> Optional[Recipe]:
+def get_recipes_by_user_id(user_id: int) -> List[Recipe]:
     with get_session() as session:
-        rec = session.get(Recipe, recipe_id)
-        if not rec:
-            return None
-        for k, v in updates.items():
-            setattr(rec, k, v)
-        session.add(rec)
-        return rec
+        return session.exec(select(Recipe).where(Recipe.user_id == user_id)).all()
+
 
 def delete_recipe(recipe_id: int) -> bool:
     with get_session() as session:
